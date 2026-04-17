@@ -281,7 +281,7 @@ function renderFooter() {
         <div class="footer-section">
           <h4>Technology</h4>
           <span class="footer-link" style="cursor:default;">Supabase DB</span>
-          <span class="footer-link" style="cursor:default;">Dental Scoring v1.0</span>
+          <a href="scoring.html" class="footer-link">Dental Scoring v1.0</a>
           <a href="image-generation.html" class="footer-link">Image Generation AI</a>
           <a href="pipeline.html" class="footer-link">4-Stage Pipeline</a>
         </div>
