@@ -187,6 +187,51 @@
             </div>
           </div>
 
+          <!-- 각도/비율 정밀 분석 -->
+          <div class="card mt-24">
+            <div class="card-header"><h3>&#x1F4D0; 치아 각도 & 비율 정밀 분석</h3></div>
+            <div class="card-body">
+              <div class="grid-2">
+                <!-- 각도 분석 캔버스 -->
+                <div>
+                  <div style="font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:8px;">각도 분석 다이어그램</div>
+                  <div class="analysis-canvas-wrap" style="width:100%;">
+                    <canvas id="angleCanvas" style="width:100%;"></canvas>
+                  </div>
+                  <div class="overlay-legend" style="margin-top:8px;">
+                    <div class="overlay-legend-item"><div class="overlay-legend-dot" style="background:#EF4444;"></div>윗니 경사각</div>
+                    <div class="overlay-legend-item"><div class="overlay-legend-dot" style="background:#3B82F6;"></div>아랫니 경사각</div>
+                    <div class="overlay-legend-item"><div class="overlay-legend-dot" style="background:#10B981;"></div>교합 평면</div>
+                    <div class="overlay-legend-item"><div class="overlay-legend-dot" style="background:#F59E0B;"></div>Overbite/Overjet</div>
+                  </div>
+                </div>
+                <!-- 측정 수치 -->
+                <div id="angleMetrics"></div>
+              </div>
+
+              <!-- 비율 분석 -->
+              <div style="margin-top:24px;">
+                <div style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); margin-bottom:12px;">치아 비율 분석</div>
+                <div class="grid-2" id="ratioAnalysis"></div>
+              </div>
+
+              <!-- DS-OHI 스타일 종합 지수 -->
+              <div style="margin-top:24px; padding:20px; background:linear-gradient(135deg, #0F172A, #1E293B); border-radius:var(--radius-lg); color:#FFF;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+                  <div>
+                    <div style="font-size:0.6875rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.05em;">Smile Vision Orthodontic Index</div>
+                    <div style="font-size:0.9375rem; font-weight:700; margin-top:4px;">SV-OI 교정 종합 지수</div>
+                  </div>
+                  <div style="text-align:center;">
+                    <div style="font-size:2.5rem; font-weight:800; color:var(--accent);" id="svOiScore">-</div>
+                    <div style="font-size:0.625rem; color:rgba(255,255,255,0.4);">/ 100</div>
+                  </div>
+                </div>
+                <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;" id="svOiBars"></div>
+              </div>
+            </div>
+          </div>
+
           <!-- KPI -->
           <div class="kpi-grid mt-24" id="orthoKPI"></div>
 
@@ -290,7 +335,7 @@
       try {
         const key = GeminiAPI.getKey();
         if (key) {
-          const prompt = `당신은 치과 교정 전문 AI입니다. 이 치아 사진을 교정 관점에서 분석해주세요.
+          const prompt = `당신은 치과 교정 전문 AI입니다. 이 치아 사진을 교정 관점에서 정밀 분석해주세요.
 
 반드시 아래 JSON 형식으로만 응답하세요:
 
@@ -304,21 +349,40 @@
     "midline": <0-100, 중심선 일치>
   },
   "total_score": <종합 0-100>,
+  "angles": {
+    "upper_incisor_angle": <상악 중절치 순측 경사각 (정상: 110±5도), 도 단위 숫자>,
+    "lower_incisor_angle": <하악 중절치 경사각 (정상: 90±5도), 도 단위 숫자>,
+    "interincisal_angle": <상하악 절치간 각도 (정상: 130±10도), 도 단위 숫자>,
+    "overbite_mm": <수직 피개 mm (정상: 2-3mm)>,
+    "overjet_mm": <수평 피개 mm (정상: 2-3mm)>,
+    "occlusal_plane_angle": <교합 평면 경사 (정상: 8-10도)>,
+    "upper_midline_deviation_mm": <상악 중심선 편위 mm, 0이면 정상>,
+    "cant_angle": <교합 평면 기울기 좌우 차이, 도 단위>
+  },
+  "ratios": {
+    "central_width_height": <중절치 폭/길이 비율 %, 이상적 75-80%>,
+    "lateral_to_central": <측절치/중절치 비율 %, 이상적 62-70%>,
+    "canine_to_central": <견치/중절치 비율 %, 이상적 55-62%>,
+    "smile_arc_match": <스마일 아크와 하순 곡선 일치도 %, 높을수록 좋음>,
+    "buccal_corridor": <볼쪽 공간 비율 %, 낮을수록 넓은 미소>
+  },
   "problems": [
     {
       "title": "문제 제목",
       "severity": "critical|warning|info",
-      "description": "상세 설명",
+      "description": "상세 설명 (각도/수치 포함)",
       "impact": "이 문제가 미소에 미치는 영향"
     }
   ],
   "recommendation": "교정 추천 (교정장치/투명교정/라미네이트 등)",
   "duration_months": <예상 교정 기간 개월>,
   "predicted_score": <교정 후 예상 종합 점수>,
-  "persuasion": "환자에게 전달할 설득 메시지 (2~3문장, 한국어)"
+  "malocclusion_class": "I|II-1|II-2|III (Angle 부정교합 분류)",
+  "persuasion": "환자에게 전달할 설득 메시지 (2~3문장, 한국어, 수치 포함)"
 }
 
-엄격하게 평가하세요. 교정 안 한 자연치아는 대부분 40~55점입니다.`;
+엄격하게 평가하세요. 교정 안 한 자연치아는 대부분 40~55점입니다.
+각도와 비율 수치는 사진에서 추정한 값으로, 정밀하게 산출해주세요.`;
 
           const response = await GeminiAPI.chat(prompt, orthoImage);
           const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -333,16 +397,26 @@
         orthoAnalysis = {
           scores: { alignment: 48, symmetry: 52, angle: 45, smile_line: 50, spacing: 42, midline: 55 },
           total_score: 49,
+          angles: {
+            upper_incisor_angle: 118, lower_incisor_angle: 95,
+            interincisal_angle: 122, overbite_mm: 4.2, overjet_mm: 3.8,
+            occlusal_plane_angle: 12, upper_midline_deviation_mm: 1.5, cant_angle: 2
+          },
+          ratios: {
+            central_width_height: 72, lateral_to_central: 58,
+            canine_to_central: 52, smile_arc_match: 65, buccal_corridor: 18
+          },
           problems: [
-            { title: '전치부 배열 불균형', severity: 'critical', description: '앞니 2개의 중심축이 비대칭이며 좌우 길이 차이가 관찰됩니다.', impact: '웃을 때 비정돈된 인상을 줍니다.' },
-            { title: '치아 각도 문제', severity: 'warning', description: '일부 치아가 안쪽으로 기울어져 있어 스마일 라인이 깨집니다.', impact: '사진에서 덜 정돈된 느낌을 줍니다.' },
-            { title: '색상 불균일', severity: 'warning', description: '자연 치아 특유의 황색톤이 존재하며 치아별 색상 차이가 있습니다.', impact: '전체적으로 칙칙한 인상을 줍니다.' },
-            { title: '스마일 라인 불일치', severity: 'info', description: '치아 라인이 입술 곡선과 완전히 일치하지 않습니다.', impact: '미소가 덜 세련되게 보입니다.' },
+            { title: '상악 전치 과도 순측 경사', severity: 'critical', description: '상악 중절치 경사각이 118°로 정상(110±5°) 대비 8° 과도합니다. 앞니가 앞으로 돌출되어 보입니다.', impact: '입이 나와 보이는 인상, 입술 돌출감 유발.' },
+            { title: '과개 교합 (Deep bite)', severity: 'warning', description: '수직 피개(Overbite)가 4.2mm로 정상(2-3mm)보다 깊습니다. 아래 앞니가 많이 가려집니다.', impact: '하악 전치 마모 촉진, 잇몸 손상 위험.' },
+            { title: '중심선 편위', severity: 'warning', description: '상악 중심선이 얼굴 중심 대비 1.5mm 우측으로 편위되어 있습니다.', impact: '좌우 비대칭 인상을 줍니다.' },
+            { title: '치아 비율 불균형', severity: 'info', description: '중절치 폭/길이 비율 72% (이상적 75-80%), 측절치/중절치 비율 58% (이상적 62-70%)로 비율이 부족합니다.', impact: '치아가 좁아 보이고 조화롭지 않은 미소.' },
           ],
           recommendation: '투명 교정 + 라미네이트 병행',
           duration_months: 12,
           predicted_score: 91,
-          persuasion: '현재 치아 상태는 기능적으로 큰 문제는 없지만, 심미적으로는 약 40% 개선 여지가 있습니다. 투명 교정과 라미네이트를 병행하면 현재보다 훨씬 밝고 정돈된 인상을 만들 수 있습니다.',
+          malocclusion_class: 'II-1',
+          persuasion: '현재 상악 전치 경사각이 118°로 정상보다 8° 과도하며, 수직 피개가 4.2mm로 깊은 교합 상태입니다. 투명 교정으로 각도를 정상화하고 라미네이트로 비율을 개선하면 종합 점수 49점에서 91점으로 42점 상승이 가능합니다.',
         };
       }
 
@@ -386,6 +460,10 @@ Keep face, skin, expression, lighting, background EXACTLY the same. ONLY modify 
 
       // Canvas 오버레이
       drawOverlay();
+      drawAngleDiagram();
+      renderAngleMetrics();
+      renderRatioAnalysis();
+      renderSvOi();
 
       // KPI
       const scoreColors = { alignment:'#0066FF', symmetry:'#8B5CF6', angle:'#F59E0B', smile_line:'#00D4AA', spacing:'#EC4899', midline:'#06B6D4' };
@@ -589,6 +667,207 @@ Keep face, skin, expression, lighting, background EXACTLY the same. ONLY modify 
         ctx.stroke();
       };
       img.src = orthoImage;
+    }
+
+    // 각도 분석 다이어그램
+    function drawAngleDiagram() {
+      const canvas = document.getElementById('angleCanvas');
+      const ctx = canvas.getContext('2d');
+      const W = 400, H = 350;
+      canvas.width = W; canvas.height = H;
+
+      const ang = orthoAnalysis.angles || {};
+      const uAngle = ang.upper_incisor_angle || 110;
+      const lAngle = ang.lower_incisor_angle || 90;
+      const overbite = ang.overbite_mm || 2.5;
+      const overjet = ang.overjet_mm || 2.5;
+
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(0, 0, W, H);
+
+      // 교합 평면 (수평 기준선)
+      const planeY = H * 0.55;
+      ctx.strokeStyle = '#10B981'; ctx.lineWidth = 2; ctx.setLineDash([6,4]);
+      ctx.beginPath(); ctx.moveTo(40, planeY); ctx.lineTo(W - 40, planeY); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#10B981'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText('교합 평면', W - 100, planeY - 6);
+
+      const cx = W / 2;
+
+      // 상악 중절치 (빨강)
+      const uRad = (180 - uAngle) * Math.PI / 180;
+      const uLen = 100;
+      const uEndX = cx + Math.sin(uRad) * uLen;
+      const uEndY = planeY - Math.cos(uRad) * uLen;
+      ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(cx, planeY); ctx.lineTo(uEndX, uEndY); ctx.stroke();
+      // 치아 모양
+      ctx.fillStyle = 'rgba(239,68,68,0.15)';
+      ctx.beginPath();
+      ctx.moveTo(cx - 8, planeY); ctx.lineTo(uEndX - 6, uEndY); ctx.lineTo(uEndX + 6, uEndY);
+      ctx.lineTo(cx + 8, planeY); ctx.closePath(); ctx.fill();
+      // 각도 표시
+      ctx.fillStyle = '#EF4444'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(uAngle + '°', uEndX + 20, uEndY + 15);
+      ctx.font = '9px sans-serif';
+      ctx.fillText('상악 중절치', uEndX + 25, uEndY + 28);
+
+      // 정상 범위 표시
+      const uNormRad = (180 - 110) * Math.PI / 180;
+      ctx.strokeStyle = 'rgba(239,68,68,0.25)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+      ctx.beginPath();
+      ctx.moveTo(cx, planeY);
+      ctx.lineTo(cx + Math.sin(uNormRad) * uLen, planeY - Math.cos(uNormRad) * uLen);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(239,68,68,0.4)'; ctx.font = '8px sans-serif';
+      ctx.fillText('정상 110°', cx + Math.sin(uNormRad) * uLen + 5, planeY - Math.cos(uNormRad) * uLen + 5);
+
+      // 하악 중절치 (파랑)
+      const lRad = lAngle * Math.PI / 180;
+      const lLen = 80;
+      const lEndX = cx - Math.sin(Math.PI - lRad) * lLen;
+      const lEndY = planeY + Math.cos(Math.PI - lRad) * lLen;
+      ctx.strokeStyle = '#3B82F6'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(cx, planeY); ctx.lineTo(lEndX, lEndY); ctx.stroke();
+      ctx.fillStyle = 'rgba(59,130,246,0.15)';
+      ctx.beginPath();
+      ctx.moveTo(cx - 7, planeY); ctx.lineTo(lEndX - 5, lEndY); ctx.lineTo(lEndX + 5, lEndY);
+      ctx.lineTo(cx + 7, planeY); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#3B82F6'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(lAngle + '°', lEndX - 20, lEndY - 8);
+      ctx.font = '9px sans-serif';
+      ctx.fillText('하악 중절치', lEndX - 25, lEndY + 5);
+
+      // Overbite/Overjet 표시
+      ctx.strokeStyle = '#F59E0B'; ctx.lineWidth = 1.5;
+      // Overjet (수평)
+      ctx.beginPath(); ctx.moveTo(cx - 15, planeY + 5); ctx.lineTo(cx + 15, planeY + 5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx + 15, planeY + 2); ctx.lineTo(cx + 15, planeY + 8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx - 15, planeY + 2); ctx.lineTo(cx - 15, planeY + 8); ctx.stroke();
+      ctx.fillStyle = '#F59E0B'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('Overjet ' + overjet + 'mm', cx, planeY + 18);
+      // Overbite (수직)
+      ctx.beginPath(); ctx.moveTo(cx + 25, planeY - 10); ctx.lineTo(cx + 25, planeY + 10); ctx.stroke();
+      ctx.fillText('OB ' + overbite + 'mm', cx + 50, planeY + 3);
+
+      // 절치간 각도 (호)
+      ctx.strokeStyle = 'rgba(139,92,246,0.6)'; ctx.lineWidth = 1.5;
+      const iaAngle = ang.interincisal_angle || 130;
+      ctx.beginPath();
+      ctx.arc(cx, planeY, 30, -Math.PI/2 - uRad + Math.PI/2, -Math.PI/2 + (Math.PI - lRad) + Math.PI/2, false);
+      ctx.stroke();
+      ctx.fillStyle = '#8B5CF6'; ctx.font = 'bold 11px sans-serif';
+      ctx.fillText('절치간 ' + iaAngle + '°', cx, planeY - 38);
+      ctx.font = '8px sans-serif';
+      ctx.fillText('(정상 130±10°)', cx, planeY - 26);
+
+      // 제목
+      ctx.fillStyle = 'var(--text-primary)'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText('치아 경사각 분석', 12, 20);
+    }
+
+    // 각도 측정 수치 테이블
+    function renderAngleMetrics() {
+      const ang = orthoAnalysis.angles || {};
+      const metrics = [
+        { label: '상악 중절치 경사각', value: ang.upper_incisor_angle, unit: '°', normal: '110±5°', status: Math.abs((ang.upper_incisor_angle||110) - 110) <= 5 },
+        { label: '하악 중절치 경사각', value: ang.lower_incisor_angle, unit: '°', normal: '90±5°', status: Math.abs((ang.lower_incisor_angle||90) - 90) <= 5 },
+        { label: '절치간 각도', value: ang.interincisal_angle, unit: '°', normal: '130±10°', status: Math.abs((ang.interincisal_angle||130) - 130) <= 10 },
+        { label: '수직 피개 (Overbite)', value: ang.overbite_mm, unit: 'mm', normal: '2~3mm', status: (ang.overbite_mm||2.5) >= 1.5 && (ang.overbite_mm||2.5) <= 3.5 },
+        { label: '수평 피개 (Overjet)', value: ang.overjet_mm, unit: 'mm', normal: '2~3mm', status: (ang.overjet_mm||2.5) >= 1.5 && (ang.overjet_mm||2.5) <= 3.5 },
+        { label: '교합 평면 경사', value: ang.occlusal_plane_angle, unit: '°', normal: '8~10°', status: (ang.occlusal_plane_angle||9) >= 7 && (ang.occlusal_plane_angle||9) <= 11 },
+        { label: '중심선 편위', value: ang.upper_midline_deviation_mm, unit: 'mm', normal: '0mm', status: (ang.upper_midline_deviation_mm||0) <= 1 },
+        { label: '교합 평면 기울기', value: ang.cant_angle, unit: '°', normal: '0°', status: (ang.cant_angle||0) <= 1 },
+      ];
+
+      document.getElementById('angleMetrics').innerHTML = `
+        <div style="font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:10px;">교정 핵심 측정 수치</div>
+        ${metrics.map(m => `
+          <div style="display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--gray-100); font-size:0.8125rem;">
+            <span style="width:14px; text-align:center;">${m.status ? '&#x2705;' : '&#x26A0;'}</span>
+            <span style="flex:1; color:var(--text-secondary);">${m.label}</span>
+            <span style="font-weight:800; color:${m.status ? 'var(--success)' : 'var(--danger)'};">${m.value || '-'}${m.unit}</span>
+            <span style="font-size:0.6875rem; color:var(--text-disabled); width:60px; text-align:right;">정상 ${m.normal}</span>
+          </div>
+        `).join('')}
+        ${orthoAnalysis.malocclusion_class ? `
+          <div style="margin-top:12px; padding:10px 14px; background:var(--primary-bg); border-radius:var(--radius-sm); font-size:0.8125rem;">
+            <strong>Angle 부정교합 분류:</strong> Class ${orthoAnalysis.malocclusion_class}
+          </div>
+        ` : ''}
+      `;
+    }
+
+    // 비율 분석
+    function renderRatioAnalysis() {
+      const r = orthoAnalysis.ratios || {};
+      const items = [
+        { label: '중절치 폭/길이', value: r.central_width_height, ideal: '75~80%', icon: '🦷', color: '#0066FF',
+          desc: '치아의 폭 대비 길이 비율. 이상적 비율은 75~80%이며, 이 범위에서 가장 자연스러운 치아 형태를 보입니다.' },
+        { label: '측절치/중절치', value: r.lateral_to_central, ideal: '62~70%', icon: '📐', color: '#00D4AA',
+          desc: '황금비율 기반. 측절치는 중절치의 62~70% 너비가 이상적이며, 이 비율이 미소의 조화를 결정합니다.' },
+        { label: '견치/중절치', value: r.canine_to_central, ideal: '55~62%', icon: '⚖️', color: '#8B5CF6',
+          desc: '견치는 중절치의 55~62% 너비가 이상적. 황금비율(1:0.7:0.6)의 마지막 요소입니다.' },
+        { label: '스마일 아크 일치', value: r.smile_arc_match, ideal: '80%+', icon: '😊', color: '#F59E0B',
+          desc: '상악 전치 절단연의 곡선이 하순 곡선과 일치하는 정도. 높을수록 아름다운 미소입니다.' },
+      ];
+
+      document.getElementById('ratioAnalysis').innerHTML = items.map(item => {
+        const val = item.value || 0;
+        const isGood = item.label.includes('스마일') ? val >= 75 : (item.label.includes('폭/길이') ? (val >= 73 && val <= 82) : val >= 55);
+        return `
+          <div style="padding:16px; background:var(--gray-50); border-radius:var(--radius-md); border:1px solid var(--gray-200);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:1rem;">${item.icon}</span>
+              <span style="font-size:1.25rem; font-weight:800; color:${isGood ? 'var(--success)' : 'var(--danger)'};">${val}%</span>
+            </div>
+            <div style="font-size:0.8125rem; font-weight:700; margin-bottom:4px;">${item.label}</div>
+            <div style="height:6px; background:var(--gray-200); border-radius:3px; overflow:hidden; margin-bottom:6px;">
+              <div style="height:100%; width:${val}%; background:${item.color}; border-radius:3px;"></div>
+            </div>
+            <div style="font-size:0.6875rem; color:var(--text-tertiary);">이상적: ${item.ideal} ${isGood ? '&#x2705;' : '&#x26A0;'}</div>
+            <div style="font-size:0.6875rem; color:var(--text-disabled); margin-top:4px;">${item.desc}</div>
+          </div>`;
+      }).join('');
+    }
+
+    // SV-OI 종합 지수
+    function renderSvOi() {
+      const a = orthoAnalysis;
+      const scores = a.scores || {};
+      const angles = a.angles || {};
+
+      // 종합 지수: 기능 점수(50%) + 심미 점수(30%) + 각도 정상도(20%)
+      const funcScore = ((scores.alignment||50) + (scores.spacing||50) + (scores.midline||50)) / 3;
+      const aesthScore = ((scores.symmetry||50) + (scores.smile_line||50) + (scores.angle||50)) / 3;
+      const angleNormality = 100 - (
+        Math.abs((angles.upper_incisor_angle||110) - 110) * 2 +
+        Math.abs((angles.lower_incisor_angle||90) - 90) * 2 +
+        Math.abs((angles.overbite_mm||2.5) - 2.5) * 8 +
+        Math.abs((angles.overjet_mm||2.5) - 2.5) * 8 +
+        Math.abs((angles.upper_midline_deviation_mm||0)) * 10
+      );
+      const svOi = Math.max(0, Math.round(funcScore * 0.5 + aesthScore * 0.3 + Math.max(0, angleNormality) * 0.2));
+
+      document.getElementById('svOiScore').textContent = svOi;
+
+      const bars = [
+        { label: '기능', score: Math.round(funcScore), weight: '50%', color: '#0066FF' },
+        { label: '심미', score: Math.round(aesthScore), weight: '30%', color: '#00D4AA' },
+        { label: '각도', score: Math.round(Math.max(0, angleNormality)), weight: '20%', color: '#8B5CF6' },
+      ];
+
+      document.getElementById('svOiBars').innerHTML = bars.map(b => `
+        <div style="flex:1; min-width:80px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.625rem; color:rgba(255,255,255,0.5); margin-bottom:4px;">
+            <span>${b.label} (${b.weight})</span><span style="color:${b.color}; font-weight:700;">${b.score}</span>
+          </div>
+          <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;">
+            <div style="height:100%; width:${b.score}%; background:${b.color}; border-radius:3px;"></div>
+          </div>
+        </div>
+      `).join('');
     }
 
     function resetAnalysis() {
