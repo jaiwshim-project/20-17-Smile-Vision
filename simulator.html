@@ -832,29 +832,39 @@
       if (apiKey) {
         try {
           const prompts = {
-            natural: `Edit this photo: apply natural-looking dental laminate veneers on the visible teeth only.
-The teeth should become:
-- Bright with a warm natural white tone (not overly artificial)
-- Perfectly aligned and symmetrical
-- Smooth edges with realistic enamel texture
-- Natural glossy finish
-Keep EVERYTHING else exactly the same: same face, same skin, same expression, same lighting, same background.
-ONLY modify the teeth. The result should look like a professional "after" photo from a real dental clinic.`,
-            white: `Edit this photo: apply bright white Hollywood-style dental laminate veneers on the visible teeth only.
-The teeth should become:
-- Very bright pure white color
-- Perfectly straight and symmetrical alignment
-- Flawless smooth surface with high gloss
-Keep EVERYTHING else exactly the same: same face, skin, expression, lighting, background.
-ONLY modify the teeth area. Celebrity-level bright white smile.`,
-            premium: `Edit this photo: apply premium dental laminate veneers on the visible teeth only.
-The teeth should become:
-- Refined ivory-white with subtle warm undertone
-- Perfectly aligned with natural proportions (golden ratio)
-- Smooth with a premium glossy enamel finish
-- Natural translucency at the edges
-Keep EVERYTHING else exactly the same: same face, skin, expression, lighting, background.
-ONLY modify the teeth. Premium natural result.`
+            natural: `Edit this dental photo. Transform the teeth with natural-style laminate veneers.
+IMPORTANT CHANGES to make on the teeth:
+- Change tooth color to bright clean white (VITA shade A2 level) — clearly whiter than the original
+- Straighten all teeth alignment — remove any crookedness or rotation
+- Make teeth symmetrical left-to-right
+- Smooth all tooth surfaces — remove stains, chips, roughness
+- Close any gaps between teeth
+- Add natural glossy enamel finish
+The change should be CLEARLY VISIBLE compared to the original.
+Keep face, skin, expression, lighting, background EXACTLY the same.
+ONLY modify the teeth area.`,
+            white: `Edit this dental photo. Transform the teeth with Hollywood-style bright white laminate veneers.
+IMPORTANT CHANGES to make on the teeth:
+- Change tooth color to very bright pure white (VITA shade B1/bleach level) — dramatic whitening
+- Perfect straight alignment like a celebrity smile
+- Perfect left-right symmetry
+- Flawless smooth surfaces with high gloss shine
+- No gaps — teeth perfectly touching
+- Uniform bright white color across all teeth
+The change should be DRAMATICALLY different from the original.
+Keep face, skin, expression, lighting, background EXACTLY the same.
+ONLY modify the teeth area.`,
+            premium: `Edit this dental photo. Transform the teeth with premium luxury laminate veneers.
+IMPORTANT CHANGES to make on the teeth:
+- Change tooth color to refined bright ivory-white (between A1 and B1) — noticeably whiter
+- Perfectly aligned teeth with golden ratio proportions (1:0.7:0.6)
+- Excellent left-right symmetry
+- Smooth premium finish with subtle natural translucency at edges
+- Close all gaps — perfect contact points
+- High-end dental clinic result quality
+The change should be CLEARLY VISIBLE compared to the original.
+Keep face, skin, expression, lighting, background EXACTLY the same.
+ONLY modify the teeth area.`
           };
 
           const results = await Promise.allSettled(
