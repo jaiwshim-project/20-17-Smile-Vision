@@ -9,18 +9,18 @@
     /* --- Hero --- */
     .compare-hero {
       background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0F172A 100%);
-      border-radius: var(--radius-xl);
-      padding: 40px 48px;
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
       color: #FFF;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 20px;
+      gap: 16px;
     }
-    .compare-hero h1 { color: #FFF; font-size: 2rem; }
+    .compare-hero h1 { color: #FFF; font-size: 1.5rem; }
     .compare-hero h1 span { color: var(--accent); }
-    .compare-hero p { color: rgba(255,255,255,0.55); font-size: 0.9375rem; max-width: 480px; }
+    .compare-hero p { color: rgba(255,255,255,0.55); font-size: 0.8125rem; max-width: 420px; }
 
     /* --- Patient Selector --- */
     .patient-select-bar {
@@ -42,13 +42,13 @@
       box-shadow: var(--shadow-md);
     }
     .compare-card-header {
-      padding: 20px 28px;
+      padding: 14px 20px;
       border-bottom: 1px solid var(--gray-100);
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 8px;
     }
     .compare-date {
       font-size: 0.8125rem;
@@ -61,10 +61,9 @@
       max-width: 100%;
       border-radius: var(--radius-lg);
       overflow: hidden;
-      box-shadow: var(--shadow-lg);
-      background: #000;
       user-select: none;
       touch-action: none;
+      background: var(--gray-100);
     }
     .slider-wrap > img {
       width: 100%;
@@ -133,13 +132,12 @@
     }
     .side-img {
       position: relative;
-      background: #0a0a0a;
-      aspect-ratio: 1;
+      background: var(--gray-100);
       overflow: hidden;
     }
     .side-img img {
-      width: 100%; height: 100%;
-      object-fit: contain;
+      width: 100%;
+      display: block;
     }
 
     /* --- View Toggle --- */
@@ -182,8 +180,8 @@
     /* --- Score Summary --- */
     .score-summary {
       display: flex;
-      gap: 16px;
-      padding: 24px 28px;
+      gap: 12px;
+      padding: 16px 20px;
       flex-wrap: wrap;
       border-top: 1px solid var(--gray-100);
     }
@@ -214,6 +212,56 @@
       border-radius: var(--radius-full);
       font-size: 0.75rem;
       font-weight: 600;
+    }
+
+    /* --- Score Detail --- */
+    .score-detail-section {
+      padding: 16px 20px;
+      border-top: 1px solid var(--gray-100);
+    }
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .score-row:last-child { border: none; }
+    .score-row-icon { font-size: 1.1rem; width: 28px; text-align: center; flex-shrink: 0; }
+    .score-row-label { width: 60px; font-size: 0.8125rem; font-weight: 700; flex-shrink: 0; }
+    .score-row-bar { flex: 1; height: 10px; background: var(--gray-100); border-radius: 5px; overflow: hidden; position: relative; }
+    .score-row-fill { height: 100%; border-radius: 5px; transition: width 0.8s var(--ease); }
+    .score-row-value { width: 36px; font-size: 0.9375rem; font-weight: 800; text-align: right; flex-shrink: 0; }
+    .score-row-desc { font-size: 0.6875rem; color: var(--text-tertiary); margin-left: 100px; margin-top: -4px; padding-bottom: 6px; border-bottom: 1px solid var(--gray-100); }
+    .score-row-desc:last-of-type { border: none; }
+
+    .grade-legend {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--gray-100);
+    }
+    .grade-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.6875rem;
+      color: var(--text-tertiary);
+    }
+    .grade-legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .score-formula {
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: var(--gray-50);
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      font-family: 'Consolas', monospace;
     }
 
     /* --- History List --- */
@@ -270,8 +318,8 @@
     /* --- Download Bar --- */
     .download-bar {
       display: flex;
-      gap: 12px;
-      padding: 16px 28px;
+      gap: 8px;
+      padding: 12px 20px;
       border-top: 1px solid var(--gray-100);
       justify-content: flex-end;
       flex-wrap: wrap;
@@ -377,7 +425,7 @@
 
               <!-- Scores -->
               <div class="score-summary" id="scoreSummary"></div>
-              <div class="score-items" id="scoreItems"></div>
+              <div class="score-detail-section" id="scoreDetailSection"></div>
 
               <!-- Download -->
               <div class="download-bar">
@@ -574,16 +622,16 @@
       const improvement = predicted - total;
 
       // Grade
-      const gradeInfo = total >= 90 ? { g: 'S', c: '#0066FF', bg: '#EBF3FF' }
-        : total >= 75 ? { g: 'A', c: '#10B981', bg: '#D1FAE5' }
-        : total >= 60 ? { g: 'B', c: '#F59E0B', bg: '#FEF3C7' }
-        : total >= 40 ? { g: 'C', c: '#EF4444', bg: '#FEE2E2' }
-        : { g: 'D', c: '#991B1B', bg: '#FEE2E2' };
+      const gradeInfo = total >= 90 ? { g: 'S', c: '#0066FF', bg: '#EBF3FF', label: '최우수' }
+        : total >= 75 ? { g: 'A', c: '#10B981', bg: '#D1FAE5', label: '우수' }
+        : total >= 60 ? { g: 'B', c: '#F59E0B', bg: '#FEF3C7', label: '보통' }
+        : total >= 40 ? { g: 'C', c: '#EF4444', bg: '#FEE2E2', label: '주의' }
+        : { g: 'D', c: '#991B1B', bg: '#FEE2E2', label: '심각' };
 
       document.getElementById('scoreSummary').innerHTML = `
         <div class="score-box" style="background:${gradeInfo.bg};">
           <div class="score-box-value" style="color:${gradeInfo.c};">${gradeInfo.g}</div>
-          <div class="score-box-label">등급</div>
+          <div class="score-box-label">등급 (${gradeInfo.label})</div>
         </div>
         <div class="score-box" style="background:var(--primary-bg);">
           <div class="score-box-value" style="color:var(--primary);">${total}</div>
@@ -599,23 +647,79 @@
         </div>
       `;
 
-      // Score chips
-      const items = {
-        '색상': { val: s.score_whiteness, color: '#0066FF' },
-        '정렬': { val: s.score_alignment, color: '#00D4AA' },
-        '대칭': { val: s.score_symmetry, color: '#8B5CF6' },
-        '간격': { val: s.score_spacing, color: '#F59E0B' },
-        '형태': { val: s.score_shape, color: '#EC4899' },
-        '잇몸': { val: s.score_gumline, color: '#06B6D4' },
-      };
+      // 항목별 상세 점수 + 설명 + 바 차트
+      const items = [
+        { key: 'whiteness', icon: '🎨', label: '색상', val: s.score_whiteness, color: '#0066FF', weight: '25%',
+          desc: 'VITA shade 기준 밝기, 착색도, 균일도, 절단연 투명도' },
+        { key: 'alignment', icon: '📐', label: '정렬', val: s.score_alignment, color: '#00D4AA', weight: '20%',
+          desc: '전치부 직선성, 개별 치아 회전, 경사, 총생(겹침) 정도' },
+        { key: 'symmetry', icon: '⚖️', label: '대칭', val: s.score_symmetry, color: '#8B5CF6', weight: '18%',
+          desc: '좌우 치아 크기, 위치, 중심선 일치, 형태 대칭성' },
+        { key: 'spacing', icon: '↔️', label: '간격', val: s.score_spacing, color: '#F59E0B', weight: '15%',
+          desc: '치아간 접촉점, 간격 균일도, 이개(벌어짐), 블랙 트라이앵글' },
+        { key: 'shape', icon: '🦷', label: '형태', val: s.score_shape, color: '#EC4899', weight: '12%',
+          desc: '폭/길이 비율(75~80%), 황금비(1:0.7:0.6), 절단연 마모, 표면 질감' },
+        { key: 'gumline', icon: '🏔️', label: '잇몸', val: s.score_gumline, color: '#06B6D4', weight: '10%',
+          desc: '잇몸 마진 연속성, 좌우 대칭, 건강도(색상/부종), 노출량' },
+      ];
 
-      document.getElementById('scoreItems').innerHTML = Object.entries(items)
-        .filter(([, v]) => v.val != null)
-        .map(([label, v]) => {
-          const bg = v.val >= 70 ? '#D1FAE5' : v.val >= 50 ? '#FEF3C7' : '#FEE2E2';
-          const c = v.val >= 70 ? '#065F46' : v.val >= 50 ? '#92400E' : '#991B1B';
-          return `<span class="score-chip" style="background:${bg}; color:${c};">${label} ${v.val}</span>`;
-        }).join('');
+      function getGradeLabel(v) {
+        if (v >= 90) return 'S';
+        if (v >= 75) return 'A';
+        if (v >= 60) return 'B';
+        if (v >= 40) return 'C';
+        return 'D';
+      }
+      function getBarColor(v) {
+        if (v >= 75) return '#10B981';
+        if (v >= 60) return '#F59E0B';
+        if (v >= 40) return '#EF4444';
+        return '#991B1B';
+      }
+
+      let detailHtml = '<div style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); margin-bottom:12px;">항목별 분석 (6가지 평가 기준)</div>';
+
+      items.forEach(item => {
+        if (item.val == null) return;
+        const barColor = item.color;
+        const grade = getGradeLabel(item.val);
+        const gradeBg = item.val >= 75 ? '#D1FAE5' : item.val >= 60 ? '#FEF3C7' : item.val >= 40 ? '#FEE2E2' : '#FEE2E2';
+        const gradeC = item.val >= 75 ? '#065F46' : item.val >= 60 ? '#92400E' : '#991B1B';
+
+        detailHtml += `
+          <div class="score-row">
+            <span class="score-row-icon">${item.icon}</span>
+            <span class="score-row-label">${item.label}</span>
+            <div class="score-row-bar">
+              <div class="score-row-fill" style="width:${item.val}%; background:${barColor};"></div>
+            </div>
+            <span class="score-row-value" style="color:${barColor};">${item.val}</span>
+            <span style="font-size:0.625rem; padding:2px 6px; border-radius:99px; background:${gradeBg}; color:${gradeC}; font-weight:700; flex-shrink:0;">${grade}</span>
+            <span style="font-size:0.625rem; color:var(--text-disabled); width:30px; text-align:right; flex-shrink:0;">${item.weight}</span>
+          </div>
+          <div class="score-row-desc">${item.desc}</div>
+        `;
+      });
+
+      // 총점 공식
+      detailHtml += `
+        <div class="score-formula">
+          Total = 0.25×색상 + 0.20×정렬 + 0.18×대칭 + 0.15×간격 + 0.12×형태 + 0.10×잇몸 = <strong style="color:var(--primary);">${total}점</strong>
+        </div>
+      `;
+
+      // 등급 범례
+      detailHtml += `
+        <div class="grade-legend">
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#0066FF;"></div>S (90~100) 최우수</div>
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#10B981;"></div>A (75~89) 우수</div>
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#F59E0B;"></div>B (60~74) 보통</div>
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#EF4444;"></div>C (40~59) 주의</div>
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#991B1B;"></div>D (0~39) 심각</div>
+        </div>
+      `;
+
+      document.getElementById('scoreDetailSection').innerHTML = detailHtml;
     }
 
     // --- Slider ---
