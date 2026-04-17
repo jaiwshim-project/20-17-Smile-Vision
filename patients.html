@@ -6,6 +6,23 @@
   <title>환자 관리 — Smile Vision AI</title>
   <link rel="stylesheet" href="css/common.css">
   <style>
+    .type-tab {
+      padding: 10px 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all var(--duration) var(--ease);
+    }
+    .type-tab:hover { color: var(--text-primary); }
+    .type-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
     .patients-toolbar {
       display: flex;
       justify-content: space-between;
@@ -224,7 +241,14 @@
           </div>
         </div>
 
-        <div class="filter-chips">
+        <!-- 분석 유형 탭 -->
+        <div style="display:flex; gap:0; margin-top:16px; border-bottom:2px solid var(--gray-200);">
+          <button class="type-tab active" id="tabAll" onclick="filterByType('all', this)">전체</button>
+          <button class="type-tab" id="tabLaminate" onclick="filterByType('laminate', this)">&#x1F9B7; 라미네이트</button>
+          <button class="type-tab" id="tabOrtho" onclick="filterByType('orthodontics', this)">&#x1FA7B; 교정·교열·교합</button>
+        </div>
+
+        <div class="filter-chips" style="margin-top:12px;">
           <button class="chip active" onclick="filterByStatus(this, 'all')">전체</button>
           <button class="chip" onclick="filterByStatus(this, '상담대기')">상담대기</button>
           <button class="chip" onclick="filterByStatus(this, '상담중')">상담중</button>
@@ -338,6 +362,7 @@
 
     let patients = [];
     let activeFilter = 'all';
+    let activeType = 'all';
     let usingSupabase = false;
 
     // Supabase 연결 시 실제 데이터 로드
@@ -367,7 +392,8 @@
               p.score = s.total_score || 0;
               p.status = s.status || '촬영완료';
               p.lastVisit = s.created_at?.split('T')[0] || p.lastVisit;
-              p.treatment = '라미네이트';
+              p.analysisType = s.analysis_type || 'laminate';
+              p.treatment = s.analysis_type === 'orthodontics' ? '교정·교열·교합' : '라미네이트';
             }
           } catch {}
         }
@@ -441,9 +467,22 @@
     function filterPatients() {
       const query = document.getElementById('searchInput').value.toLowerCase();
       let filtered = patients;
+      // 유형 필터
+      if (activeType === 'laminate') filtered = filtered.filter(p => p.analysisType !== 'orthodontics');
+      else if (activeType === 'orthodontics') filtered = filtered.filter(p => p.analysisType === 'orthodontics');
+      // 상태 필터
       if (activeFilter !== 'all') filtered = filtered.filter(p => p.status === activeFilter);
+      // 검색
       if (query) filtered = filtered.filter(p => p.name.includes(query) || p.phone.includes(query));
       renderTable(filtered);
+      updateKPI();
+    }
+
+    function filterByType(type, el) {
+      document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      activeType = type;
+      filterPatients();
     }
 
     function filterByStatus(el, status) {
