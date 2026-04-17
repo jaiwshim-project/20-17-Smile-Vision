@@ -342,19 +342,13 @@ function removeSupabaseConfig() {
 // --- Gemini API Helper ---
 const GeminiAPI = {
   apiKey: '',
-  DEFAULT_KEY: 'AIzaSyB8aInvuMVy5nqwYcH3A2V8eZWrZmTARj0',
-
   setKey(key) {
     this.apiKey = key;
     Store.set('gemini_key', key);
   },
 
   getKey() {
-    if (!this.apiKey) this.apiKey = Store.get('gemini_key', '') || this.DEFAULT_KEY;
-    // 기본키 사용 시 localStorage에도 저장
-    if (this.apiKey && !Store.get('gemini_key', '')) {
-      Store.set('gemini_key', this.apiKey);
-    }
+    if (!this.apiKey) this.apiKey = Store.get('gemini_key', '');
     return this.apiKey;
   },
 
