@@ -222,17 +222,18 @@
     .score-row {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--gray-100);
+      gap: 10px;
+      padding: 8px 0;
     }
-    .score-row:last-child { border: none; }
-    .score-row-icon { font-size: 1.1rem; width: 28px; text-align: center; flex-shrink: 0; }
-    .score-row-label { width: 60px; font-size: 0.8125rem; font-weight: 700; flex-shrink: 0; }
-    .score-row-bar { flex: 1; height: 10px; background: var(--gray-100); border-radius: 5px; overflow: hidden; position: relative; }
+    .score-row-icon { font-size: 1.1rem; width: 24px; text-align: center; flex-shrink: 0; }
+    .score-row-label { width: 48px; font-size: 0.8125rem; font-weight: 700; flex-shrink: 0; }
+    .score-row-bars { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+    .score-row-bar { height: 10px; background: var(--gray-100); border-radius: 5px; overflow: hidden; position: relative; }
     .score-row-fill { height: 100%; border-radius: 5px; transition: width 0.8s var(--ease); }
-    .score-row-value { width: 36px; font-size: 0.9375rem; font-weight: 800; text-align: right; flex-shrink: 0; }
-    .score-row-desc { font-size: 0.6875rem; color: var(--text-tertiary); margin-left: 100px; margin-top: -4px; padding-bottom: 6px; border-bottom: 1px solid var(--gray-100); }
+    .score-row-predicted { height: 10px; background: var(--gray-100); border-radius: 5px; overflow: hidden; }
+    .score-row-predicted-fill { height: 100%; border-radius: 5px; transition: width 0.8s var(--ease); opacity: 0.45; }
+    .score-row-values { width: 70px; flex-shrink: 0; text-align: right; line-height: 1.4; }
+    .score-row-desc { font-size: 0.6875rem; color: var(--text-tertiary); margin-left: 82px; margin-top: -2px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-100); }
     .score-row-desc:last-of-type { border: none; }
 
     .grade-legend {
@@ -648,6 +649,24 @@
       `;
 
       // 항목별 상세 점수 + 설명 + 바 차트
+      // 예상 점수 계산
+      const improvFactors = {
+        whiteness: { min: 25, max: 45 },
+        alignment: { min: 20, max: 35 },
+        symmetry:  { min: 15, max: 30 },
+        spacing:   { min: 20, max: 40 },
+        shape:     { min: 15, max: 30 },
+        gumline:   { min: 5,  max: 15 },
+      };
+
+      function predictItem(key, val) {
+        const f = improvFactors[key];
+        if (!f || val == null) return val;
+        const deficit = 100 - val;
+        const imp = f.min + (deficit / 100) * (f.max - f.min);
+        return Math.min(98, Math.round(val + imp));
+      }
+
       const items = [
         { key: 'whiteness', icon: '🎨', label: '색상', val: s.score_whiteness, color: '#0066FF', weight: '25%',
           desc: 'VITA shade 기준 밝기, 착색도, 균일도, 절단연 투명도' },
@@ -670,40 +689,55 @@
         if (v >= 40) return 'C';
         return 'D';
       }
-      function getBarColor(v) {
-        if (v >= 75) return '#10B981';
-        if (v >= 60) return '#F59E0B';
-        if (v >= 40) return '#EF4444';
-        return '#991B1B';
-      }
 
       let detailHtml = '<div style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); margin-bottom:8px;">항목별 분석 (6가지 평가 기준)</div>';
       detailHtml += `
-        <div class="grade-legend" style="margin-top:0; margin-bottom:14px; padding-top:0; border-top:none;">
+        <div class="grade-legend" style="margin-top:0; margin-bottom:10px; padding-top:0; border-top:none;">
           <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#0066FF;"></div>S (90~100) 최우수</div>
           <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#10B981;"></div>A (75~89) 우수</div>
           <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#F59E0B;"></div>B (60~74) 보통</div>
           <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#EF4444;"></div>C (40~59) 주의</div>
           <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#991B1B;"></div>D (0~39) 심각</div>
         </div>`;
+      // 바 범례 (현재 vs 예상)
+      detailHtml += `
+        <div style="display:flex; gap:16px; margin-bottom:10px; font-size:0.6875rem; color:var(--text-tertiary);">
+          <span style="display:flex; align-items:center; gap:5px;"><span style="width:20px;height:8px;border-radius:4px;background:var(--primary);display:inline-block;"></span> 현재 점수</span>
+          <span style="display:flex; align-items:center; gap:5px;"><span style="width:20px;height:8px;border-radius:4px;background:var(--primary);opacity:0.35;display:inline-block;"></span> 시술 후 예상</span>
+        </div>`;
 
       items.forEach(item => {
         if (item.val == null) return;
-        const barColor = item.color;
-        const grade = getGradeLabel(item.val);
-        const gradeBg = item.val >= 75 ? '#D1FAE5' : item.val >= 60 ? '#FEF3C7' : item.val >= 40 ? '#FEE2E2' : '#FEE2E2';
-        const gradeC = item.val >= 75 ? '#065F46' : item.val >= 60 ? '#92400E' : '#991B1B';
+        const pred = predictItem(item.key, item.val);
+        const curGrade = getGradeLabel(item.val);
+        const predGrade = getGradeLabel(pred);
+        const curGradeBg = item.val >= 75 ? '#D1FAE5' : item.val >= 60 ? '#FEF3C7' : '#FEE2E2';
+        const curGradeC = item.val >= 75 ? '#065F46' : item.val >= 60 ? '#92400E' : '#991B1B';
+        const predGradeBg = pred >= 75 ? '#D1FAE5' : pred >= 60 ? '#FEF3C7' : '#FEE2E2';
+        const predGradeC = pred >= 75 ? '#065F46' : pred >= 60 ? '#92400E' : '#991B1B';
+        const diff = pred - item.val;
 
         detailHtml += `
           <div class="score-row">
             <span class="score-row-icon">${item.icon}</span>
             <span class="score-row-label">${item.label}</span>
-            <div class="score-row-bar">
-              <div class="score-row-fill" style="width:${item.val}%; background:${barColor};"></div>
+            <div class="score-row-bars">
+              <div class="score-row-bar">
+                <div class="score-row-fill" style="width:${item.val}%; background:${item.color};"></div>
+              </div>
+              <div class="score-row-predicted">
+                <div class="score-row-predicted-fill" style="width:${pred}%; background:${item.color};"></div>
+              </div>
             </div>
-            <span class="score-row-value" style="color:${barColor};">${item.val}</span>
-            <span style="font-size:0.625rem; padding:2px 6px; border-radius:99px; background:${gradeBg}; color:${gradeC}; font-weight:700; flex-shrink:0;">${grade}</span>
-            <span style="font-size:0.625rem; color:var(--text-disabled); width:30px; text-align:right; flex-shrink:0;">${item.weight}</span>
+            <div class="score-row-values">
+              <div style="font-size:0.875rem; font-weight:800; color:${item.color};">${item.val}<span style="font-size:0.6875rem; color:var(--text-disabled); font-weight:400;"> → </span><span style="color:#065F46;">${pred}</span></div>
+              <div style="font-size:0.625rem; display:flex; gap:4px; justify-content:flex-end; align-items:center;">
+                <span style="padding:1px 5px; border-radius:99px; background:${curGradeBg}; color:${curGradeC}; font-weight:700;">${curGrade}</span>
+                <span style="color:var(--text-disabled);">→</span>
+                <span style="padding:1px 5px; border-radius:99px; background:${predGradeBg}; color:${predGradeC}; font-weight:700;">${predGrade}</span>
+                <span style="color:var(--success); font-weight:700;">+${diff}</span>
+              </div>
+            </div>
           </div>
           <div class="score-row-desc">${item.desc}</div>
         `;
@@ -712,11 +746,9 @@
       // 총점 공식
       detailHtml += `
         <div class="score-formula">
-          Total = 0.25×색상 + 0.20×정렬 + 0.18×대칭 + 0.15×간격 + 0.12×형태 + 0.10×잇몸 = <strong style="color:var(--primary);">${total}점</strong>
+          Total = 0.25×색상 + 0.20×정렬 + 0.18×대칭 + 0.15×간격 + 0.12×형태 + 0.10×잇몸 = <strong style="color:var(--primary);">${total}점</strong> → <strong style="color:#065F46;">${predicted}점</strong>
         </div>
       `;
-
-      // 등급 범례는 상단에 이미 표시됨
 
       document.getElementById('scoreDetailSection').innerHTML = detailHtml;
     }
