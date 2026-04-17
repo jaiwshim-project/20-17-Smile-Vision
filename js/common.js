@@ -136,7 +136,7 @@ function renderSidebar(activePage) {
       </a>
 
       <a href="orthodontics.html" class="nav-item ${activePage === 'ortho' ? 'active' : ''}">
-        <span class="nav-item-icon">&#x1FA7B;</span> 교정 분석
+        <span class="nav-item-icon">&#x1FA7B;</span> 교정·교열·교합
       </a>
 
       <div class="nav-section-label">Management</div>
