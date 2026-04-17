@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OrthoVision AI Engine — Smile Vision AI</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    /* Hero */
+    .ov-hero {
+      background: linear-gradient(135deg, #0F172A 0%, #0a2a4a 25%, #1a2a3e 50%, #1a1a3e 75%, #0F172A 100%);
+      border-radius: var(--radius-xl);
+      padding: 48px;
+      color: #FFF;
+      position: relative;
+      overflow: hidden;
+    }
+    .ov-hero::before {
+      content: '';
+      position: absolute;
+      top: -20%; left: -10%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(0,102,255,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .ov-hero::after {
+      content: '';
+      position: absolute;
+      bottom: -30%; right: 5%;
+      width: 350px; height: 350px;
+      background: radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .ov-hero .glow-green {
+      position: absolute;
+      top: 30%; right: 30%;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(0,212,170,0.10) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .ov-hero h1 { color: #FFF; position: relative; z-index: 1; font-size: 2rem; }
+    .ov-hero h1 .blue { color: #4D94FF; }
+    .ov-hero h1 .purple { color: #A78BFA; }
+    .ov-hero h1 .green { color: #00D4AA; }
+    .ov-hero .subtitle { color: rgba(255,255,255,0.7); position: relative; z-index: 1; font-size: 1.0625rem; font-weight: 600; margin-bottom: 8px; }
+    .ov-hero p { color: rgba(255,255,255,0.5); position: relative; z-index: 1; max-width: 680px; line-height: 1.7; }
+    .ov-hero .version-badge {
+      display: inline-block; padding: 4px 14px; border-radius: var(--radius-full);
+      background: rgba(0,102,255,0.2); color: #4D94FF; font-size: 0.75rem; font-weight: 700;
+      margin-bottom: 12px; position: relative; z-index: 1;
+    }
+
+    /* Section */
+    .ov-section { margin-top: 32px; }
+    .ov-section h2 { margin-bottom: 20px; }
+
+    /* 3-column cards */
+    .tri-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+    }
+    .tri-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+      transition: all var(--duration) var(--ease);
+    }
+    .tri-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .tri-card-icon {
+      width: 52px; height: 52px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; margin-bottom: 16px;
+    }
+    .tri-card h3 { margin-bottom: 4px; font-size: 1.125rem; }
+    .tri-card .tri-card-en { font-size: 0.75rem; color: var(--text-tertiary); font-weight: 600; margin-bottom: 12px; }
+    .tri-card p { font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.7; }
+    .tri-card .tri-accent {
+      position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    }
+
+    /* Pipeline Flow */
+    .pipeline-flow { display: flex; flex-direction: column; gap: 0; }
+    .stage-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      overflow: hidden;
+    }
+    .stage-connector { display: flex; justify-content: center; padding: 8px 0; }
+    .stage-connector-line {
+      width: 3px; height: 32px;
+      background: linear-gradient(180deg, var(--gray-300), var(--primary));
+      border-radius: 2px;
+    }
+    .stage-header {
+      display: flex; align-items: center; gap: 16px;
+      padding: 24px 28px; border-bottom: 1px solid var(--gray-100);
+    }
+    .stage-num {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; font-weight: 800; color: #FFF; flex-shrink: 0;
+    }
+    .stage-header-text h3 { margin-bottom: 2px; }
+    .stage-header-text p { font-size: 0.8125rem; }
+    .stage-body { padding: 24px 28px; }
+
+    /* Tech Card */
+    .tech-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+    .tech-card h3 { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .tech-card-icon {
+      width: 40px; height: 40px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+    }
+
+    /* Tabs */
+    .tab-bar {
+      display: flex; gap: 4px; margin-bottom: 20px;
+      background: var(--gray-100); border-radius: var(--radius-md); padding: 4px;
+    }
+    .tab-btn {
+      padding: 10px 20px; border: none; background: none; border-radius: var(--radius-sm);
+      font-size: 0.875rem; font-weight: 600; cursor: pointer; color: var(--text-tertiary);
+      transition: all var(--duration) var(--ease); flex: 1; text-align: center;
+    }
+    .tab-btn.active { background: #FFF; color: var(--text-primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Table */
+    .data-table {
+      width: 100%; border-collapse: collapse; font-size: 0.8125rem;
+    }
+    .data-table th {
+      text-align: left; padding: 12px 16px; background: var(--gray-50);
+      font-weight: 700; color: var(--text-secondary); border-bottom: 2px solid var(--gray-200);
+    }
+    .data-table td {
+      padding: 12px 16px; border-bottom: 1px solid var(--gray-100); color: var(--text-secondary);
+    }
+    .data-table tr:hover td { background: var(--gray-50); }
+    .data-table .val { font-weight: 700; color: var(--primary); }
+
+    /* Decision Tree */
+    .tree-flow {
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+    }
+    .tree-node {
+      padding: 16px 24px; border-radius: var(--radius-md);
+      text-align: center; font-size: 0.875rem; font-weight: 600;
+      min-width: 200px; position: relative;
+    }
+    .tree-question {
+      background: #FEF3C7; color: #92400E; border: 2px solid #F59E0B;
+    }
+    .tree-branch {
+      display: flex; gap: 24px; justify-content: center; align-items: flex-start;
+    }
+    .tree-branch-item { display: flex; flex-direction: column; align-items: center; gap: 0; }
+    .tree-label {
+      font-size: 0.75rem; font-weight: 700; padding: 4px 12px;
+      border-radius: var(--radius-full); margin: 4px 0;
+    }
+    .tree-label-yes { background: #DCFCE7; color: #166534; }
+    .tree-label-no { background: #FEE2E2; color: #991B1B; }
+    .tree-result {
+      padding: 14px 20px; border-radius: var(--radius-md);
+      font-size: 0.8125rem; font-weight: 600; min-width: 140px; text-align: center;
+    }
+    .tree-connector { display: flex; justify-content: center; padding: 4px 0; }
+    .tree-connector-line {
+      width: 2px; height: 20px; background: var(--gray-300);
+    }
+    .tree-h-connector {
+      width: 100%; height: 2px; background: var(--gray-300); margin: 0 auto;
+    }
+
+    /* SV-OI */
+    .score-formula {
+      background: var(--gray-900); color: #FFF; border-radius: var(--radius-md);
+      padding: 24px; text-align: center; margin-bottom: 24px;
+    }
+    .score-formula .formula {
+      font-family: 'Consolas', monospace; font-size: 1.125rem; color: #00D4AA; font-weight: 700;
+    }
+    .score-formula .formula-label {
+      font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 8px;
+    }
+    .bar-chart { margin-top: 16px; }
+    .bar-item { margin-bottom: 12px; }
+    .bar-label {
+      display: flex; justify-content: space-between; margin-bottom: 6px;
+      font-size: 0.8125rem; font-weight: 600;
+    }
+    .bar-track {
+      height: 12px; background: var(--gray-100); border-radius: var(--radius-full); overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; border-radius: var(--radius-full); transition: width 0.8s ease;
+    }
+    .grade-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 20px;
+    }
+    .grade-item {
+      text-align: center; padding: 14px 8px; border-radius: var(--radius-md);
+      border: 1px solid var(--gray-200);
+    }
+    .grade-letter { font-size: 1.5rem; font-weight: 800; }
+    .grade-range { font-size: 0.6875rem; color: var(--text-tertiary); margin-top: 4px; }
+
+    /* Compare Table */
+    .compare-table {
+      width: 100%; border-collapse: collapse; font-size: 0.8125rem;
+    }
+    .compare-table th {
+      padding: 14px 16px; text-align: center; font-weight: 700;
+      border-bottom: 2px solid var(--gray-200);
+    }
+    .compare-table th:first-child { text-align: left; }
+    .compare-table td {
+      padding: 12px 16px; border-bottom: 1px solid var(--gray-100);
+      text-align: center; color: var(--text-secondary);
+    }
+    .compare-table td:first-child { text-align: left; font-weight: 600; color: var(--text-primary); }
+    .compare-table tr:hover td { background: var(--gray-50); }
+    .compare-table .col-best {
+      background: rgba(0,102,255,0.04);
+    }
+    .compare-table th.col-best {
+      background: rgba(0,102,255,0.08); color: var(--primary);
+    }
+    .compare-badge {
+      display: inline-block; padding: 2px 8px; border-radius: var(--radius-full);
+      font-size: 0.6875rem; font-weight: 700; background: var(--primary-bg); color: var(--primary);
+    }
+
+    /* Tech stack tags */
+    .tech-stack { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .tech-tag {
+      padding: 8px 16px; border-radius: var(--radius-full);
+      font-size: 0.8125rem; font-weight: 600;
+      border: 1px solid var(--gray-200); color: var(--text-secondary);
+      transition: all var(--duration) var(--ease);
+    }
+    .tech-tag:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
+
+    /* Spec grid */
+    .spec-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px; margin-top: 16px;
+    }
+    .spec-item {
+      padding: 16px; background: var(--gray-50); border-radius: var(--radius-md); text-align: center;
+    }
+    .spec-value { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+    .spec-label { font-size: 0.75rem; color: var(--text-tertiary); margin-top: 4px; }
+
+    /* Decision tree visual */
+    .decision-tree-visual {
+      padding: 32px 16px;
+      overflow-x: auto;
+    }
+    .dt-level {
+      display: flex; flex-direction: column; align-items: center; margin-bottom: 0;
+    }
+    .dt-question {
+      background: #FEF3C7; border: 2px solid #F59E0B; color: #92400E;
+      padding: 14px 28px; border-radius: 12px;
+      font-weight: 700; font-size: 0.9375rem; text-align: center;
+    }
+    .dt-branches {
+      display: flex; justify-content: center; gap: 40px; margin-top: 0;
+    }
+    .dt-branch {
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .dt-vline {
+      width: 2px; height: 24px; background: var(--gray-300);
+    }
+    .dt-tag {
+      padding: 3px 12px; border-radius: var(--radius-full);
+      font-size: 0.6875rem; font-weight: 700; margin: 4px 0;
+    }
+    .dt-tag-yes { background: #DCFCE7; color: #166534; }
+    .dt-tag-no { background: #FEE2E2; color: #991B1B; }
+    .dt-answer {
+      padding: 12px 20px; border-radius: var(--radius-md);
+      font-size: 0.8125rem; font-weight: 600; text-align: center;
+      min-width: 130px;
+    }
+    .dt-sub-branches {
+      display: flex; justify-content: center; gap: 24px; margin-top: 0;
+    }
+
+    @media (max-width: 768px) {
+      .ov-hero { padding: 28px 20px; }
+      .tri-grid { grid-template-columns: 1fr; }
+      .grade-grid { grid-template-columns: repeat(3, 1fr); }
+      .dt-branches, .dt-sub-branches { flex-direction: column; align-items: center; }
+      .compare-table { font-size: 0.75rem; }
+      .compare-table th, .compare-table td { padding: 8px 6px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="app">
+    <div class="main">
+      <header class="header">
+        <div class="flex items-center gap-12">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <span class="header-title">OrthoVision AI Engine</span>
+        </div>
+        <div class="header-actions">
+          <a href="simulator.html" class="btn btn-sm btn-accent">AI 시뮬레이터</a>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Hero -->
+        <section class="ov-hero">
+          <div class="glow-green"></div>
+          <div class="version-badge">ENGINE v1.0</div>
+          <h1><span class="blue">Ortho</span><span class="purple">Vision</span> <span class="green">AI</span> Engine</h1>
+          <div class="subtitle">교정 &middot; 교열 &middot; 교합 통합 AI 분석 엔진</div>
+          <p>Smile Vision AI 플랫폼만의 독자적 AI 엔진. 치아의 구조(교정), 외형(교열), 기능(교합)을 하나의 통합 파이프라인으로 분석하고 시뮬레이션합니다.</p>
+        </section>
+
+        <!-- 섹션 1: 엔진 개요 -->
+        <section class="ov-section">
+          <h2>&#x1F9E9; 엔진 개요 — 3가지 통합 분석</h2>
+          <div class="tri-grid">
+            <!-- 교정 -->
+            <div class="tri-card">
+              <div class="tri-accent" style="background: linear-gradient(90deg, #0066FF, #4D94FF);"></div>
+              <div class="tri-card-icon" style="background: rgba(0,102,255,0.1);">&#x1F9B7;</div>
+              <h3>교정</h3>
+              <div class="tri-card-en">Orthodontics</div>
+              <p>치아 위치를 이동시켜 배열, 턱, 구조를 바로잡는 분석. 세팔로 각도, 정렬, 중심선 편위, 총생도 분석.</p>
+              <div class="spec-grid" style="margin-top:16px;">
+                <div class="spec-item">
+                  <div class="spec-value" style="color:#0066FF;">9+</div>
+                  <div class="spec-label">분석 항목</div>
+                </div>
+                <div class="spec-item">
+                  <div class="spec-value" style="color:#0066FF;">&#176;</div>
+                  <div class="spec-label">각도 기반 분석</div>
+                </div>
+              </div>
+            </div>
+            <!-- 교열 -->
+            <div class="tri-card">
+              <div class="tri-accent" style="background: linear-gradient(90deg, #8B5CF6, #A78BFA);"></div>
+              <div class="tri-card-icon" style="background: rgba(139,92,246,0.1);">&#x2728;</div>
+              <h3>교열</h3>
+              <div class="tri-card-en">Cosmetic Correction</div>
+              <p>겉모양을 보정하는 심미 분석. 황금비율(1:0.7:0.6), VITA shade 색상, 스마일 라인, 치아 형태 비율 분석.</p>
+              <div class="spec-grid" style="margin-top:16px;">
+                <div class="spec-item">
+                  <div class="spec-value" style="color:#8B5CF6;">1.618</div>
+                  <div class="spec-label">황금비율 기준</div>
+                </div>
+                <div class="spec-item">
+                  <div class="spec-value" style="color:#8B5CF6;">6+</div>
+                  <div class="spec-label">심미 항목</div>
+                </div>
+              </div>
+            </div>
+            <!-- 교합 -->
+            <div class="tri-card">
+              <div class="tri-accent" style="background: linear-gradient(90deg, #00D4AA, #10B981);"></div>
+              <div class="tri-card-icon" style="background: rgba(0,212,170,0.1);">&#x2696;</div>
+              <h3>교합</h3>
+              <div class="tri-card-en">Occlusion</div>
+              <p>위아래 치아 맞물림 기능 분석. Overbite/Overjet, 접촉점 압력, Angle 부정교합 분류, 턱관절 평가.</p>
+              <div class="spec-grid" style="margin-top:16px;">
+                <div class="spec-item">
+                  <div class="spec-value" style="color:#00D4AA;">5+</div>
+                  <div class="spec-label">기능 항목</div>
+                </div>
+                <div class="spec-item">
+                  <div class="spec-value" style="color:#00D4AA;">III</div>
+                  <div class="spec-label">Angle 분류</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 섹션 2: 분석 파이프라인 -->
+        <section class="ov-section">
+          <h2>&#x1F504; 분석 파이프라인 — 5단계 흐름</h2>
+          <div class="pipeline-flow">
+            <!-- Step 1 -->
+            <div class="stage-card">
+              <div class="stage-header">
+                <div class="stage-num" style="background:linear-gradient(135deg, #0066FF, #4D94FF);">1</div>
+                <div class="stage-header-text">
+                  <h3>이미지 입력</h3>
+                  <p>환자 구강 사진 촬영 및 업로드</p>
+                </div>
+              </div>
+              <div class="stage-body">
+                <p style="font-size:0.875rem; color:var(--text-secondary);">정면 스마일, 교합면, 측면 등 다양한 각도의 구강 사진을 입력합니다. 웹캠 촬영 또는 파일 업로드를 지원하며, 자동으로 이미지 품질과 조건을 검증합니다.</p>
+              </div>
+            </div>
+            <div class="stage-connector"><div class="stage-connector-line"></div></div>
+
+            <!-- Step 2 -->
+            <div class="stage-card">
+              <div class="stage-header">
+                <div class="stage-num" style="background:linear-gradient(135deg, #00D4AA, #10B981);">2</div>
+                <div class="stage-header-text">
+                  <h3>MediaPipe 얼굴/치아 감지</h3>
+                  <p>468개 랜드마크 + 치아 영역 세그멘테이션</p>
+                </div>
+              </div>
+              <div class="stage-body">
+                <p style="font-size:0.875rem; color:var(--text-secondary);">MediaPipe Face Mesh로 468개 3D 랜드마크를 감지하고, 입 주변 22개 포인트로 치아 영역을 정밀 분리합니다. 상악/하악 치아를 개별 식별하여 분석 대상을 확정합니다.</p>
+              </div>
+            </div>
+            <div class="stage-connector"><div class="stage-connector-line"></div></div>
+
+            <!-- Step 3 -->
+            <div class="stage-card">
+              <div class="stage-header">
+                <div class="stage-num" style="background:linear-gradient(135deg, #8B5CF6, #A78BFA);">3</div>
+                <div class="stage-header-text">
+                  <h3>교정 &middot; 교열 &middot; 교합 동시 분석</h3>
+                  <p>3개 엔진이 병렬로 통합 분석 수행</p>
+                </div>
+              </div>
+              <div class="stage-body">
+                <p style="font-size:0.875rem; color:var(--text-secondary);">교정 엔진은 세팔로 각도와 정렬을 분석하고, 교열 엔진은 황금비율과 색상을 평가하며, 교합 엔진은 Overbite/Overjet와 접촉점을 측정합니다. 3개 분석이 동시에 병렬 처리됩니다.</p>
+              </div>
+            </div>
+            <div class="stage-connector"><div class="stage-connector-line"></div></div>
+
+            <!-- Step 4 -->
+            <div class="stage-card">
+              <div class="stage-header">
+                <div class="stage-num" style="background:linear-gradient(135deg, #F59E0B, #FBBF24);">4</div>
+                <div class="stage-header-text">
+                  <h3>AI 치료 의사결정 트리</h3>
+                  <p>분석 결과 기반 최적 치료 경로 추천</p>
+                </div>
+              </div>
+              <div class="stage-body">
+                <p style="font-size:0.875rem; color:var(--text-secondary);">교합, 정렬, 심미 이상 여부를 순차적으로 평가하여 종합 교정, 부분 교정, 라미네이트, 미백 등 최적 치료 경로를 AI가 자동으로 추천합니다.</p>
+              </div>
+            </div>
+            <div class="stage-connector"><div class="stage-connector-line"></div></div>
+
+            <!-- Step 5 -->
+            <div class="stage-card">
+              <div class="stage-header">
+                <div class="stage-num" style="background:linear-gradient(135deg, #EF4444, #F87171);">5</div>
+                <div class="stage-header-text">
+                  <h3>시뮬레이션 생성 + 리포트</h3>
+                  <p>AI 이미지 변환 + 종합 분석 리포트 출력</p>
+                </div>
+              </div>
+              <div class="stage-body">
+                <p style="font-size:0.875rem; color:var(--text-secondary);">Gemini 2.5 Flash Image 모델로 치료 후 예상 결과 이미지를 생성하고, 교정/교열/교합 종합 분석 리포트를 자동 생성합니다. Before/After 비교와 SV-OI 점수를 포함합니다.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 섹션 3: 핵심 측정 항목 -->
+        <section class="ov-section">
+          <h2>&#x1F4CF; 핵심 측정 항목</h2>
+          <div class="tech-card">
+            <div class="tab-bar">
+              <button class="tab-btn active" onclick="switchTab('ortho')">&#x1F9B7; 교정 (Orthodontics)</button>
+              <button class="tab-btn" onclick="switchTab('cosmetic')">&#x2728; 교열 (Cosmetic)</button>
+              <button class="tab-btn" onclick="switchTab('occlusion')">&#x2696; 교합 (Occlusion)</button>
+            </div>
+
+            <!-- 교정 탭 -->
+            <div class="tab-panel active" id="tab-ortho">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>항목</th>
+                    <th>정상 범위</th>
+                    <th>설명</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>상악 전치 경사각 (U1-SN)</td><td class="val">104&plusmn;2&deg;</td><td>앞니 순측 경사</td></tr>
+                  <tr><td>하악 전치 경사각 (IMPA)</td><td class="val">90&plusmn;5&deg;</td><td>아래 앞니 기울기</td></tr>
+                  <tr><td>절치간 각도</td><td class="val">130&plusmn;10&deg;</td><td>상하 앞니 관계</td></tr>
+                  <tr><td>SNA 각도</td><td class="val">82&plusmn;2&deg;</td><td>상악 전돌도</td></tr>
+                  <tr><td>SNB 각도</td><td class="val">80&plusmn;2&deg;</td><td>하악 전돌도</td></tr>
+                  <tr><td>ANB 각도</td><td class="val">2&plusmn;2&deg;</td><td>상하악 관계</td></tr>
+                  <tr><td>Overbite</td><td class="val">2~3mm</td><td>수직 피개</td></tr>
+                  <tr><td>Overjet</td><td class="val">2~3mm</td><td>수평 피개</td></tr>
+                  <tr><td>중심선 편위</td><td class="val">0~1mm</td><td>얼굴 대비 편위</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 교열 탭 -->
+            <div class="tab-panel" id="tab-cosmetic">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>항목</th>
+                    <th>이상적 기준</th>
+                    <th>설명</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>황금비율</td><td class="val">1.618:1.0:0.618</td><td>중절치:측절치:견치</td></tr>
+                  <tr><td>폭/길이 비율</td><td class="val">75~85%</td><td>개별 치아 비율</td></tr>
+                  <tr><td>스마일 아크</td><td class="val">하순 곡선 평행</td><td>절단연 곡선</td></tr>
+                  <tr><td>VITA shade</td><td class="val">A1~A2</td><td>이상적 밝기</td></tr>
+                  <tr><td>Buccal Corridor</td><td class="val">10~15%</td><td>볼쪽 공간</td></tr>
+                  <tr><td>잇몸 노출</td><td class="val">0~2mm</td><td>미소 시 노출량</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 교합 탭 -->
+            <div class="tab-panel" id="tab-occlusion">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>항목</th>
+                    <th>정상 범위</th>
+                    <th>설명</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Angle 분류</td><td class="val">Class I</td><td>정상 교합</td></tr>
+                  <tr><td>교합 평면 경사</td><td class="val">8~10&deg;</td><td>씹는 면 기울기</td></tr>
+                  <tr><td>교합 평면 기울기</td><td class="val">0~1&deg;</td><td>좌우 기울기</td></tr>
+                  <tr><td>교합 접촉점</td><td class="val">균등 분포</td><td>압력 균형</td></tr>
+                  <tr><td>측방 운동</td><td class="val">견치 유도</td><td>하악 이동 시</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 섹션 4: AI 의사결정 트리 -->
+        <section class="ov-section">
+          <h2>&#x1F333; AI 의사결정 트리</h2>
+          <div class="tech-card">
+            <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:24px;">OrthoVision AI 엔진은 분석 결과를 기반으로 최적의 치료 경로를 자동 추천합니다. 교합 → 정렬 → 심미 순서로 평가하여 가장 효과적인 치료 조합을 결정합니다.</p>
+
+            <div class="decision-tree-visual">
+              <!-- Level 1: 교합 이상? -->
+              <div class="dt-level">
+                <div class="dt-question">&#x2696; 교합 이상?</div>
+                <div class="dt-vline" style="margin:0 auto;"></div>
+                <div class="dt-branches">
+                  <div class="dt-branch">
+                    <div class="dt-tag dt-tag-yes">YES</div>
+                    <div class="dt-vline"></div>
+                    <div class="dt-answer" style="background:#DBEAFE; color:#1E40AF;">교합 조정 + 교정</div>
+                  </div>
+                  <div class="dt-branch">
+                    <div class="dt-tag dt-tag-no">NO</div>
+                    <div class="dt-vline"></div>
+                    <!-- Level 2: 정렬 이상? -->
+                    <div class="dt-question" style="font-size:0.875rem; padding:12px 20px;">&#x1F9B7; 정렬 이상?</div>
+                    <div class="dt-vline"></div>
+                    <div class="dt-branches">
+                      <div class="dt-branch">
+                        <div class="dt-tag dt-tag-yes">YES</div>
+                        <div class="dt-vline"></div>
+                        <div class="dt-sub-branches">
+                          <div class="dt-branch">
+                            <div class="dt-tag" style="background:#FEF3C7; color:#92400E;">심각</div>
+                            <div class="dt-vline"></div>
+                            <div class="dt-answer" style="background:#EDE9FE; color:#7C3AED;">종합 교정</div>
+                          </div>
+                          <div class="dt-branch">
+                            <div class="dt-tag" style="background:#E0F2FE; color:#0369A1;">경미</div>
+                            <div class="dt-vline"></div>
+                            <div class="dt-answer" style="background:#D1FAE5; color:#065F46;">부분 교정<br><span style="font-size:0.75rem;">or 라미네이트</span></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="dt-branch">
+                        <div class="dt-tag dt-tag-no">NO</div>
+                        <div class="dt-vline"></div>
+                        <!-- Level 3: 심미 이상? -->
+                        <div class="dt-question" style="font-size:0.875rem; padding:12px 20px;">&#x2728; 심미 이상?</div>
+                        <div class="dt-vline"></div>
+                        <div class="dt-branches">
+                          <div class="dt-branch">
+                            <div class="dt-tag dt-tag-yes">YES</div>
+                            <div class="dt-vline"></div>
+                            <div class="dt-answer" style="background:#FDF2F8; color:#BE185D;">라미네이트 + 미백</div>
+                          </div>
+                          <div class="dt-branch">
+                            <div class="dt-tag dt-tag-no">NO</div>
+                            <div class="dt-vline"></div>
+                            <div class="dt-answer" style="background:#F0FDF4; color:#166534;">정기 검진 &#x2714;</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 섹션 5: SV-OI 종합 지수 -->
+        <section class="ov-section">
+          <h2>&#x1F4CA; SV-OI 종합 지수</h2>
+          <div class="tech-card">
+            <div class="score-formula">
+              <div style="font-size:0.75rem; color:rgba(255,255,255,0.4); margin-bottom:8px;">Smile Vision - Ortho Index</div>
+              <div class="formula">SV-OI = Function(50%) + Aesthetic(30%) + Angle(20%)</div>
+              <div class="formula-label">기능(교합) 50% + 심미(교열) 30% + 각도 정상도(교정) 20%</div>
+            </div>
+
+            <h4 style="margin-bottom:12px;">구성요소별 가중치</h4>
+            <div class="bar-chart">
+              <div class="bar-item">
+                <div class="bar-label">
+                  <span>&#x2696; 기능 (교합) — Function</span>
+                  <span style="color:var(--primary);">50%</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width:50%; background:linear-gradient(90deg, #00D4AA, #10B981);"></div>
+                </div>
+              </div>
+              <div class="bar-item">
+                <div class="bar-label">
+                  <span>&#x2728; 심미 (교열) — Aesthetic</span>
+                  <span style="color:#8B5CF6;">30%</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width:30%; background:linear-gradient(90deg, #8B5CF6, #A78BFA);"></div>
+                </div>
+              </div>
+              <div class="bar-item">
+                <div class="bar-label">
+                  <span>&#x1F9B7; 각도 정상도 (교정) — Angle</span>
+                  <span style="color:#0066FF;">20%</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width:20%; background:linear-gradient(90deg, #0066FF, #4D94FF);"></div>
+                </div>
+              </div>
+            </div>
+
+            <h4 style="margin-top:28px; margin-bottom:12px;">등급 체계</h4>
+            <div class="grade-grid">
+              <div class="grade-item" style="background:#F0FDF4; border-color:#86EFAC;">
+                <div class="grade-letter" style="color:#16A34A;">S</div>
+                <div class="grade-range">90점 이상</div>
+              </div>
+              <div class="grade-item" style="background:#EFF6FF; border-color:#93C5FD;">
+                <div class="grade-letter" style="color:#2563EB;">A</div>
+                <div class="grade-range">75~89점</div>
+              </div>
+              <div class="grade-item" style="background:#F5F3FF; border-color:#C4B5FD;">
+                <div class="grade-letter" style="color:#7C3AED;">B</div>
+                <div class="grade-range">60~74점</div>
+              </div>
+              <div class="grade-item" style="background:#FEF3C7; border-color:#FCD34D;">
+                <div class="grade-letter" style="color:#D97706;">C</div>
+                <div class="grade-range">40~59점</div>
+              </div>
+              <div class="grade-item" style="background:#FEE2E2; border-color:#FCA5A5;">
+                <div class="grade-letter" style="color:#DC2626;">D</div>
+                <div class="grade-range">0~39점</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 섹션 6: 경쟁 기술 비교 -->
+        <section class="ov-section">
+          <h2>&#x1F3C6; 경쟁 기술 비교</h2>
+          <div class="tech-card" style="overflow-x:auto;">
+            <table class="compare-table">
+              <thead>
+                <tr>
+                  <th>항목</th>
+                  <th>기존 수동</th>
+                  <th>단순 AI</th>
+                  <th class="col-best">OrthoVision AI <span class="compare-badge">OUR</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>교정 분석</td>
+                  <td>수동 세팔로</td>
+                  <td>자동 랜드마크</td>
+                  <td class="col-best" style="font-weight:700; color:var(--primary);">자동 + 3영역 통합</td>
+                </tr>
+                <tr>
+                  <td>교열 분석</td>
+                  <td>사진 보정</td>
+                  <td>AI 필터</td>
+                  <td class="col-best" style="font-weight:700; color:var(--primary);">치아 재생성</td>
+                </tr>
+                <tr>
+                  <td>교합 분석</td>
+                  <td>교합지</td>
+                  <td>&#x2014;</td>
+                  <td class="col-best" style="font-weight:700; color:var(--primary);">압력 시뮬레이션</td>
+                </tr>
+                <tr>
+                  <td>치료 추천</td>
+                  <td>의사 경험</td>
+                  <td>점수 기반</td>
+                  <td class="col-best" style="font-weight:700; color:var(--primary);">의사결정 트리 AI</td>
+                </tr>
+                <tr>
+                  <td>시뮬레이션</td>
+                  <td>없음</td>
+                  <td>필터</td>
+                  <td class="col-best" style="font-weight:700; color:var(--primary);">AI 이미지 생성</td>
+                </tr>
+                <tr>
+                  <td>통합 리포트</td>
+                  <td>없음</td>
+                  <td>부분</td>
+                  <td class="col-best" style="font-weight:700; color:var(--primary);">완전 자동</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 섹션 7: 적용 기술 스택 -->
+        <section class="ov-section">
+          <h2>&#x1F6E0; 적용 기술 스택</h2>
+          <div class="tech-card">
+            <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:16px;">OrthoVision AI Engine을 구성하는 핵심 기술들입니다.</p>
+            <div class="tech-stack">
+              <span class="tech-tag">MediaPipe</span>
+              <span class="tech-tag">Gemini 2.5 Flash</span>
+              <span class="tech-tag">Canvas API</span>
+              <span class="tech-tag">Dental Scoring v1.0</span>
+              <span class="tech-tag">Supabase</span>
+              <span class="tech-tag">WASM</span>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- .content -->
+    </div><!-- .main -->
+  </div><!-- #app -->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    document.getElementById('app').insertAdjacentHTML('afterbegin', renderSidebar('orthovision'));
+
+    // Tab switching
+    function switchTab(tabName) {
+      // Deactivate all
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+      // Activate selected
+      document.getElementById('tab-' + tabName).classList.add('active');
+      // Find and activate the correct button
+      const tabs = { ortho: 0, cosmetic: 1, occlusion: 2 };
+      document.querySelectorAll('.tab-btn')[tabs[tabName]].classList.add('active');
+    }
+  </script>
+</body>
+</html>
