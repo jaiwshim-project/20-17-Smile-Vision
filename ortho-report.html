@@ -271,6 +271,24 @@
             <div class="card-body" id="rptProblems"></div>
           </div>
 
+          <!-- AI 온톨로지 분석 -->
+          <div class="card mt-24">
+            <div class="card-header"><h3>&#x1F578;&#xFE0F; AI 온톨로지 분석</h3></div>
+            <div class="card-body">
+              <p style="font-size:0.8125rem; color:var(--text-secondary); margin-bottom:12px;">환자의 치아 상태를 노드와 관계로 시각화합니다. 문제점이 어떤 영역에서 발생했고, 왜 이 치료가 추천되는지 한눈에 파악할 수 있습니다.</p>
+              <canvas id="rptOntologyCanvas" style="width:100%; border-radius:var(--radius-md);"></canvas>
+              <div style="display:flex; flex-wrap:wrap; gap:16px; margin-top:14px; font-size:0.75rem; color:var(--text-secondary);">
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#0066FF;vertical-align:middle;margin-right:4px;"></span>교정 영역</span>
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#8B5CF6;vertical-align:middle;margin-right:4px;"></span>교열 영역</span>
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#00D4AA;vertical-align:middle;margin-right:4px;"></span>교합 영역</span>
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#EF4444;vertical-align:middle;margin-right:4px;"></span>문제 발견</span>
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#F59E0B;vertical-align:middle;margin-right:4px;"></span>추천 치료</span>
+                <span><span style="display:inline-block;width:24px;height:2px;background:#94A3B8;vertical-align:middle;margin-right:4px;"></span>정상 관계</span>
+                <span><span style="display:inline-block;width:24px;height:0;border-top:2px dashed #EF4444;vertical-align:middle;margin-right:4px;"></span>문제 관계</span>
+              </div>
+            </div>
+          </div>
+
           <!-- 교정 타임라인 -->
           <div class="card mt-24">
             <div class="card-header"><h3>&#x1F4C5; 교정 시뮬레이션 타임라인</h3></div>
@@ -470,6 +488,9 @@
         </div>`;
       }).join('');
 
+      // 온톨로지 그래프
+      drawOntologyGraph(s);
+
       // 타임라인
       const months = 12;
       const steps = [
@@ -607,6 +628,188 @@
         ctx.fillText('경사각 · 교합평면 · Overbite/Overjet', 8*scale, 16*scale);
       };
       img.src = imgSrc;
+    }
+
+    // 온톨로지 그래프
+    function drawOntologyGraph(sim) {
+      const canvas = document.getElementById('rptOntologyCanvas');
+      const ctx = canvas.getContext('2d');
+      const W = 800, H = 500;
+      canvas.width = W; canvas.height = H;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      canvas.style.height = 'auto';
+      ctx.scale(dpr, dpr);
+
+      // 배경
+      ctx.fillStyle = '#F8FAFC';
+      ctx.fillRect(0, 0, W, H);
+
+      // 점수 데이터
+      const alignment = sim.score_alignment || 50;
+      const symmetry = sim.score_symmetry || 50;
+      const whiteness = sim.score_whiteness || 50;
+      const spacing = sim.score_spacing || 50;
+      const shape = sim.score_shape || 50;
+      const gumline = sim.score_gumline || 50;
+      const total = sim.total_score || 50;
+      const findings = sim.findings || ['치아 배열 불균형', '색상 불균일', '간격 불균일'];
+      const rec = sim.recommendation || '라미네이트 + 부분 교정';
+
+      // 노드 정의
+      const cx = W / 2, cy = 200;
+
+      // 중심 노드
+      const center = { x: cx, y: cy, r: 30, label: '환자 치아 상태', color: '#334155', score: total };
+
+      // 3 영역 노드 (120도 간격, 위쪽부터)
+      const areaR = 120;
+      const areas = [
+        { x: cx + areaR * Math.sin(0),            y: cy - areaR * Math.cos(0),            r: 20, label: '교정', sublabel: 'Orthodontics', color: '#0066FF' },
+        { x: cx + areaR * Math.sin(2*Math.PI/3),  y: cy - areaR * Math.cos(2*Math.PI/3),  r: 20, label: '교열', sublabel: 'Cosmetic',      color: '#8B5CF6' },
+        { x: cx + areaR * Math.sin(4*Math.PI/3),  y: cy - areaR * Math.cos(4*Math.PI/3),  r: 20, label: '교합', sublabel: 'Occlusion',     color: '#00D4AA' },
+      ];
+
+      // 세부 노드
+      const detailR = 80;
+      function detailPos(area, idx, count) {
+        const baseAngle = Math.atan2(area.y - cy, area.x - cx);
+        const spread = Math.PI * 0.6;
+        const angle = baseAngle - spread/2 + spread * idx / (count - 1);
+        return { x: area.x + detailR * Math.cos(angle), y: area.y + detailR * Math.sin(angle) };
+      }
+
+      function scoreColor(v) {
+        if (v >= 75) return '#10B981';
+        if (v >= 50) return '#F59E0B';
+        return '#EF4444';
+      }
+
+      const details = [
+        // 교정
+        { ...detailPos(areas[0], 0, 3), r: 14, label: '정렬', score: alignment, parent: 0 },
+        { ...detailPos(areas[0], 1, 3), r: 14, label: '중심선', score: symmetry, parent: 0 },
+        { ...detailPos(areas[0], 2, 3), r: 14, label: '경사각', score: Math.round((alignment + symmetry) / 2), parent: 0 },
+        // 교열
+        { ...detailPos(areas[1], 0, 3), r: 14, label: '색상', score: whiteness, parent: 1 },
+        { ...detailPos(areas[1], 1, 3), r: 14, label: '비율', score: shape, parent: 1 },
+        { ...detailPos(areas[1], 2, 3), r: 14, label: '스마일라인', score: Math.round((shape + whiteness) / 2), parent: 1 },
+        // 교합
+        { ...detailPos(areas[2], 0, 3), r: 14, label: 'Overbite', score: spacing, parent: 2 },
+        { ...detailPos(areas[2], 1, 3), r: 14, label: 'Overjet', score: gumline, parent: 2 },
+        { ...detailPos(areas[2], 2, 3), r: 14, label: 'Angle분류', score: Math.round((spacing + gumline) / 2), parent: 2 },
+      ];
+
+      // 문제 노드 — 관련 세부 노드 바깥에 배치
+      const problemNodes = findings.slice(0, 4).map((f, i) => {
+        // 연결할 세부 노드 인덱스 결정
+        const detailIdx = i % details.length;
+        const d = details[detailIdx];
+        const angle = Math.atan2(d.y - cy, d.x - cx);
+        return { x: d.x + 50 * Math.cos(angle), y: d.y + 50 * Math.sin(angle), r: 12, label: f, color: '#EF4444', linkedDetail: detailIdx };
+      });
+
+      // 추천 치료 노드
+      const recNode = { x: cx, y: H - 70, r: 22, label: rec, color: '#F59E0B' };
+
+      // ── 그리기 ──
+
+      // 헬퍼: 엣지
+      function drawEdge(x1, y1, x2, y2, color, dashed) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        if (dashed) ctx.setLineDash([5, 4]);
+        else ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // 중심 → 영역
+      areas.forEach(a => drawEdge(center.x, center.y, a.x, a.y, '#CBD5E1', false));
+
+      // 영역 → 세부
+      details.forEach(d => {
+        const a = areas[d.parent];
+        drawEdge(a.x, a.y, d.x, d.y, '#CBD5E1', false);
+      });
+
+      // 세부 → 문제 (빨간 점선)
+      problemNodes.forEach(p => {
+        const d = details[p.linkedDetail];
+        drawEdge(d.x, d.y, p.x, p.y, '#EF4444', true);
+      });
+
+      // 문제 → 추천 치료 (초록 실선)
+      problemNodes.forEach(p => {
+        drawEdge(p.x, p.y, recNode.x, recNode.y, '#10B981', false);
+      });
+
+      // 헬퍼: 노드 그리기
+      function drawNode(n, fillColor, textColor) {
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = fillColor; ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 2; ctx.stroke();
+        // 점수 텍스트 (있으면)
+        if (n.score != null) {
+          ctx.fillStyle = textColor || '#FFF';
+          ctx.font = `bold ${Math.max(9, n.r * 0.7)}px sans-serif`;
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(n.score, n.x, n.y);
+        }
+        // 라벨
+        ctx.fillStyle = '#475569';
+        ctx.font = `600 ${Math.max(9, n.r * 0.55)}px sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        const labelText = n.label.length > 8 ? n.label.substring(0, 8) + '…' : n.label;
+        ctx.fillText(labelText, n.x, n.y + n.r + 4);
+      }
+
+      // 중심 노드
+      drawNode(center, '#334155', '#FFF');
+
+      // 영역 노드
+      areas.forEach(a => {
+        drawNode({ ...a, score: null }, a.color, '#FFF');
+        // 영역 이름 안에 표시
+        ctx.fillStyle = '#FFF';
+        ctx.font = `bold ${a.r * 0.65}px sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(a.label, a.x, a.y);
+      });
+
+      // 세부 노드 (점수 색상 반영)
+      details.forEach(d => {
+        const col = scoreColor(d.score);
+        drawNode(d, col, '#FFF');
+      });
+
+      // 문제 노드
+      problemNodes.forEach(p => {
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = '#EF4444'; ctx.fill();
+        ctx.strokeStyle = '#FFF'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#FFF'; ctx.font = 'bold 8px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('!', p.x, p.y);
+        // 라벨
+        ctx.fillStyle = '#991B1B';
+        ctx.font = '600 8px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        const pLabel = p.label.length > 10 ? p.label.substring(0, 10) + '…' : p.label;
+        ctx.fillText(pLabel, p.x, p.y + p.r + 3);
+      });
+
+      // 추천 치료 노드
+      ctx.beginPath(); ctx.arc(recNode.x, recNode.y, recNode.r, 0, Math.PI * 2);
+      ctx.fillStyle = '#F59E0B'; ctx.fill();
+      ctx.strokeStyle = '#FFF'; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.fillStyle = '#FFF'; ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('★', recNode.x, recNode.y);
+      // 추천 라벨
+      ctx.fillStyle = '#92400E';
+      ctx.font = '700 11px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      const recLabel = rec.length > 20 ? rec.substring(0, 20) + '…' : rec;
+      ctx.fillText(recLabel, recNode.x, recNode.y + recNode.r + 5);
     }
 
     loadPatients();
