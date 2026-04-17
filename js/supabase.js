@@ -144,7 +144,7 @@ const SupabaseDB = {
   // ============================================================
   // 시뮬레이션 (Simulations)
   // ============================================================
-  async saveSimulation({ patientId, beforeImage, afterImages, scores, findings, recommendation, selectedStyle }) {
+  async saveSimulation({ patientId, beforeImage, afterImages, scores, findings, recommendation, selectedStyle, orthoData }) {
     if (!this.client) throw new Error('Supabase 미연결');
 
     const ts = Date.now();
@@ -198,6 +198,18 @@ const SupabaseDB = {
       recommendation: recommendation || '',
       selected_style: selectedStyle || 'natural',
     };
+
+    // 교정 전용 데이터 추가 (컬럼이 있을 때만)
+    if (orthoData) {
+      row.ortho_angles = orthoData.angles || null;
+      row.ortho_ratios = orthoData.ratios || null;
+      row.ortho_problems = orthoData.problems || null;
+      row.ortho_recommendation = orthoData.recommendation || null;
+      row.ortho_duration_months = orthoData.duration_months || null;
+      row.ortho_malocclusion = orthoData.malocclusion_class || null;
+      row.ortho_persuasion = orthoData.persuasion || null;
+      row.analysis_type = 'orthodontics';
+    }
 
     // 첫 시도: 6항목 전체 저장
     let { data, error } = await this.client

@@ -1341,22 +1341,33 @@ Keep face, skin, expression, lighting, background EXACTLY the same. ONLY modify 
       if (!SupabaseDB.isReady()) { showToast('Supabase 미연결', 'warning'); return; }
 
       try {
-        const patient = await SupabaseDB.createPatient({ name: '교정분석 환자', phone: '' });
+        const patient = await SupabaseDB.createPatient({ name: '교정·교열·교합 환자', phone: '' });
         await SupabaseDB.saveSimulation({
           patientId: patient.id,
           beforeImage: orthoImage,
           afterImages: { natural: document.getElementById('orthoAfter').src },
           scores: {
-            whiteness: orthoAnalysis.scores.alignment,
-            alignment: orthoAnalysis.scores.alignment,
-            symmetry: orthoAnalysis.scores.symmetry,
-            spacing: orthoAnalysis.scores.spacing,
+            whiteness: orthoAnalysis.scores.angle || 0,
+            alignment: orthoAnalysis.scores.alignment || 0,
+            symmetry: orthoAnalysis.scores.symmetry || 0,
+            spacing: orthoAnalysis.scores.spacing || 0,
+            shape: orthoAnalysis.scores.smile_line || 0,
+            gumline: orthoAnalysis.scores.midline || 0,
             total: orthoAnalysis.total_score,
             predicted: orthoAnalysis.predicted_score,
           },
-          findings: orthoAnalysis.problems.map(p => p.title),
+          findings: orthoAnalysis.problems.map(p => p.title + ': ' + p.description),
           recommendation: orthoAnalysis.recommendation,
           selectedStyle: 'natural',
+          orthoData: {
+            angles: orthoAnalysis.angles,
+            ratios: orthoAnalysis.ratios,
+            problems: orthoAnalysis.problems,
+            recommendation: orthoAnalysis.recommendation,
+            duration_months: orthoAnalysis.duration_months,
+            malocclusion_class: orthoAnalysis.malocclusion_class,
+            persuasion: orthoAnalysis.persuasion,
+          },
         });
         showToast('교정·교열·교합 분석 리포트가 저장되었습니다', 'success');
       } catch (e) {

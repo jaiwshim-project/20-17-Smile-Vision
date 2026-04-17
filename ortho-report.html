@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>교정·교열·교합 분석 리포트 — Smile Vision AI</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .report-hero {
+      background: linear-gradient(135deg, #0F172A 0%, #1a2a3e 50%, #0F172A 100%);
+      border-radius: var(--radius-xl); padding: 36px 40px; color: #FFF;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+    }
+    .report-hero h1 { color: #FFF; font-size: 1.75rem; }
+    .report-hero h1 span { color: var(--accent); }
+
+    /* Patient Header */
+    .patient-header {
+      display: flex; align-items: center; gap: 20px; padding: 20px;
+      background: var(--gray-50); border-radius: var(--radius-md); flex-wrap: wrap;
+    }
+    .patient-avatar-lg {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      color: #FFF; font-size: 1.5rem; font-weight: 800; flex-shrink: 0;
+    }
+    .patient-meta { font-size: 0.8125rem; color: var(--text-tertiary); }
+
+    /* Grade Badge Large */
+    .grade-lg {
+      width: 80px; height: 80px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; font-weight: 800; color: #FFF; flex-shrink: 0;
+    }
+
+    /* Score Ring */
+    .score-ring-lg { position: relative; width: 120px; height: 120px; margin: 0 auto; }
+    .score-ring-lg svg { transform: rotate(-90deg); }
+    .score-ring-lg .ring-value {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-size: 2rem; font-weight: 800;
+    }
+    .score-ring-lg .ring-label {
+      position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+      font-size: 0.6875rem; color: var(--text-tertiary); white-space: nowrap;
+    }
+
+    /* Photo Compare */
+    .photo-compare {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+      border-radius: var(--radius-lg); overflow: hidden; background: var(--gray-200);
+    }
+    .photo-compare img { width: 100%; display: block; }
+    .photo-compare-label {
+      position: absolute; top: 8px; left: 8px;
+      padding: 3px 12px; border-radius: var(--radius-full);
+      font-size: 0.6875rem; font-weight: 700; color: #FFF;
+    }
+
+    /* Angle Visual */
+    .angle-visual { border-radius: var(--radius-lg); overflow: hidden; }
+    .angle-visual canvas { width: 100%; display: block; }
+
+    /* Metric Row */
+    .metric-row {
+      display: flex; align-items: center; gap: 10px; padding: 10px 0;
+      border-bottom: 1px solid var(--gray-100); font-size: 0.8125rem;
+    }
+    .metric-row:last-child { border: none; }
+    .metric-icon { width: 20px; text-align: center; flex-shrink: 0; }
+    .metric-name { flex: 1; color: var(--text-secondary); }
+    .metric-value { font-weight: 800; width: 50px; text-align: right; flex-shrink: 0; }
+    .metric-normal { font-size: 0.6875rem; color: var(--text-disabled); width: 65px; text-align: right; flex-shrink: 0; }
+    .metric-bar { width: 100px; height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+    .metric-bar-fill { height: 100%; border-radius: 3px; }
+
+    /* Problem List */
+    .problem-item {
+      padding: 14px 16px; border-radius: var(--radius-md); margin-bottom: 8px;
+      border-left: 4px solid; background: var(--surface); border: 1px solid var(--gray-200);
+    }
+    .problem-item.critical { border-left-color: var(--danger); }
+    .problem-item.warning { border-left-color: var(--warning); }
+    .problem-item.info { border-left-color: var(--primary); }
+
+    /* Timeline Mini */
+    .timeline-mini { display: flex; gap: 0; align-items: flex-start; position: relative; padding: 0 10px; }
+    .timeline-mini::before {
+      content: ''; position: absolute; top: 16px; left: 30px; right: 30px;
+      height: 3px; background: var(--gray-200); border-radius: 2px;
+    }
+    .tl-step { flex: 1; text-align: center; position: relative; z-index: 1; }
+    .tl-dot {
+      width: 32px; height: 32px; border-radius: 50%; margin: 0 auto 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 800; color: #FFF;
+    }
+    .tl-label { font-size: 0.6875rem; font-weight: 600; }
+    .tl-desc { font-size: 0.5625rem; color: var(--text-disabled); margin-top: 2px; }
+
+    /* Recommendation Box */
+    .rec-box {
+      padding: 24px; border-radius: var(--radius-lg); text-align: center;
+      border: 2px solid; position: relative;
+    }
+    .rec-box-icon { font-size: 2rem; margin-bottom: 8px; }
+    .rec-box-title { font-size: 1.125rem; font-weight: 800; }
+    .rec-box-detail { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 8px; }
+
+    /* Persuasion */
+    .persuasion-card {
+      background: linear-gradient(135deg, #EBF3FF, #D1FAE5);
+      border-radius: var(--radius-lg); padding: 24px; margin-top: 20px;
+    }
+    .persuasion-card blockquote {
+      font-size: 0.9375rem; font-weight: 600; line-height: 1.7;
+      border-left: 4px solid var(--primary); padding-left: 16px; margin: 0;
+    }
+
+    /* Print */
+    @media print {
+      .sidebar, .header, .hamburger, .no-print { display: none !important; }
+      .main { margin-left: 0 !important; }
+      .content { padding: 10px !important; }
+      .card { break-inside: avoid; box-shadow: none !important; border: 1px solid #ddd !important; }
+    }
+
+    @media (max-width: 768px) {
+      .report-hero { padding: 24px 20px; }
+      .photo-compare { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="app">
+    <div class="main">
+      <header class="header no-print">
+        <div class="flex items-center gap-12">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <span class="header-title">교정·교열·교합 분석 리포트</span>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-sm btn-outline" onclick="window.print()">&#x1F5A8; 인쇄 / PDF</button>
+          <a href="orthodontics.html" class="btn btn-sm btn-accent">새 분석</a>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Hero -->
+        <section class="report-hero no-print">
+          <div>
+            <h1>OrthoVision AI <span>분석 리포트</span></h1>
+            <p style="color:rgba(255,255,255,0.5); font-size:0.8125rem;">교정·교열·교합 통합 AI 분석 결과</p>
+          </div>
+          <div class="patient-select-bar">
+            <select class="form-input" id="reportPatientSelect" onchange="loadReport()" style="min-width:200px;">
+              <option value="">환자를 선택하세요</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- Empty -->
+        <div id="reportEmpty" class="mt-24" style="text-align:center; padding:60px 20px; color:var(--text-tertiary);">
+          <div style="font-size:3rem; margin-bottom:12px;">&#x1F4CB;</div>
+          <h3>분석 리포트를 선택하세요</h3>
+          <p style="margin-top:8px;">환자를 선택하면 저장된 분석 결과가 리포트 형태로 출력됩니다.</p>
+        </div>
+
+        <!-- Report Content -->
+        <div id="reportContent" class="hidden">
+
+          <!-- 환자 정보 + 종합 등급 -->
+          <div class="card mt-24">
+            <div class="card-body">
+              <div style="display:flex; gap:24px; align-items:center; flex-wrap:wrap;">
+                <div class="patient-header" style="flex:1;">
+                  <div class="patient-avatar-lg" id="rptAvatar">심</div>
+                  <div>
+                    <h3 id="rptName" style="margin-bottom:2px;">-</h3>
+                    <div class="patient-meta" id="rptMeta">-</div>
+                    <div class="patient-meta" id="rptDate">-</div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:16px; align-items:center;">
+                  <div class="score-ring-lg">
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                      <circle cx="60" cy="60" r="52" fill="none" stroke="var(--gray-200)" stroke-width="8"/>
+                      <circle cx="60" cy="60" r="52" fill="none" stroke-width="8" stroke-linecap="round"
+                        id="rptRing" stroke="var(--primary)"
+                        stroke-dasharray="327" stroke-dashoffset="160"/>
+                    </svg>
+                    <div class="ring-value" id="rptTotal">-</div>
+                    <div class="ring-label">현재 점수</div>
+                  </div>
+                  <div style="text-align:center;">
+                    <div style="font-size:0.625rem; color:var(--text-disabled);">→</div>
+                  </div>
+                  <div class="score-ring-lg">
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                      <circle cx="60" cy="60" r="52" fill="none" stroke="var(--gray-200)" stroke-width="8"/>
+                      <circle cx="60" cy="60" r="52" fill="none" stroke-width="8" stroke-linecap="round"
+                        id="rptRingPred" stroke="#10B981"
+                        stroke-dasharray="327" stroke-dashoffset="60"/>
+                    </svg>
+                    <div class="ring-value" id="rptPredicted" style="color:#10B981;">-</div>
+                    <div class="ring-label">시술 후 예상</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Before / After -->
+          <div class="card mt-24">
+            <div class="card-header"><h3>&#x1F4F7; Before / After</h3></div>
+            <div class="card-body">
+              <div class="photo-compare">
+                <div style="position:relative;">
+                  <img id="rptBefore" src="">
+                  <span class="photo-compare-label" style="background:rgba(0,0,0,0.6);">BEFORE</span>
+                </div>
+                <div style="position:relative;">
+                  <img id="rptAfter" src="">
+                  <span class="photo-compare-label" style="background:rgba(0,212,170,0.85);">AFTER</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI 오버레이 분석 -->
+          <div class="card mt-24">
+            <div class="card-header"><h3>&#x1F4D0; AI 오버레이 분석</h3></div>
+            <div class="card-body">
+              <div class="grid-2">
+                <div>
+                  <div style="font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:6px;">중심선 · 스마일커브 · 치아위치</div>
+                  <div class="angle-visual"><canvas id="rptOverlayCanvas"></canvas></div>
+                </div>
+                <div>
+                  <div style="font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:6px;">경사각 · 교합평면 · OB/OJ</div>
+                  <div class="angle-visual"><canvas id="rptAngleCanvas"></canvas></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6항목 점수 -->
+          <div class="card mt-24">
+            <div class="card-header"><h3>&#x1F4CA; 항목별 점수</h3></div>
+            <div class="card-body" id="rptScores"></div>
+          </div>
+
+          <!-- 교정 측정 수치 -->
+          <div class="card mt-24">
+            <div class="card-header"><h3>&#x1F4D0; 교정 핵심 측정 수치</h3></div>
+            <div class="card-body" id="rptAngleMetrics"></div>
+          </div>
+
+          <!-- 비율 분석 -->
+          <div class="card mt-24">
+            <div class="card-header"><h3>&#x2696; 치아 비율 분석</h3></div>
+            <div class="card-body">
+              <div class="grid-2" id="rptRatios"></div>
+            </div>
+          </div>
+
+          <!-- 문제점 -->
+          <div class="card mt-24">
+            <div class="card-header"><h3>&#x1F50D; 발견된 문제점</h3></div>
+            <div class="card-body" id="rptProblems"></div>
+          </div>
+
+          <!-- 교정 타임라인 -->
+          <div class="card mt-24">
+            <div class="card-header"><h3>&#x1F4C5; 교정 시뮬레이션 타임라인</h3></div>
+            <div class="card-body">
+              <div class="timeline-mini" id="rptTimeline"></div>
+            </div>
+          </div>
+
+          <!-- AI 추천 -->
+          <div class="card mt-24">
+            <div class="card-header"><h3>&#x1F3AF; AI 치료 추천</h3></div>
+            <div class="card-body" id="rptRecommendation"></div>
+          </div>
+
+          <!-- 환자 메시지 -->
+          <div class="persuasion-card" id="rptPersuasion"></div>
+
+          <!-- 하단 정보 -->
+          <div style="margin-top:24px; padding:16px; text-align:center; color:var(--text-disabled); font-size:0.6875rem;">
+            본 리포트는 AI 분석 결과이며, 최종 진단은 담당 의사와 상담하시기 바랍니다.<br>
+            Powered by <strong>OrthoVision AI Engine</strong> · Smile Vision AI Platform
+          </div>
+
+          <!-- 액션 -->
+          <div style="display:flex; gap:12px; justify-content:center; margin-top:20px;" class="no-print">
+            <button class="btn btn-primary btn-lg" onclick="window.print()">&#x1F5A8; PDF 저장 / 인쇄</button>
+            <a href="orthodontics.html" class="btn btn-accent btn-lg">&#x1FA7B; 새 분석</a>
+            <a href="patients.html" class="btn btn-secondary btn-lg">&#x1F465; 환자 관리</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    document.getElementById('app').insertAdjacentHTML('afterbegin', renderSidebar('ortho'));
+
+    let reportData = null;
+
+    // 환자 목록 로드
+    async function loadPatients() {
+      if (!SupabaseDB.isReady()) SupabaseDB.init();
+      if (!SupabaseDB.isReady()) return;
+      try {
+        const patients = await SupabaseDB.getPatients({ limit: 200 });
+        const sel = document.getElementById('reportPatientSelect');
+        patients.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = `${p.name}${p.phone ? ' (' + p.phone + ')' : ''}`;
+          sel.appendChild(opt);
+        });
+        // 전체 옵션
+        const allSims = await SupabaseDB.getSimulations({ limit: 50 });
+        if (allSims.length > 0) {
+          const opt = document.createElement('option');
+          opt.value = 'latest';
+          opt.textContent = '-- 최신 분석 결과 --';
+          sel.insertBefore(opt, sel.options[1]);
+        }
+      } catch (e) { console.warn(e); }
+    }
+
+    async function loadReport() {
+      const val = document.getElementById('reportPatientSelect').value;
+      if (!val) { showEmpty(); return; }
+      try {
+        let sims;
+        if (val === 'latest') {
+          sims = await SupabaseDB.getSimulations({ limit: 1 });
+        } else {
+          sims = await SupabaseDB.getSimulations({ patientId: val, limit: 1 });
+        }
+        if (!sims.length) { showEmpty(); showToast('분석 기록 없음', 'warning'); return; }
+        reportData = sims[0];
+        renderReport();
+      } catch (e) { showToast('로드 실패: ' + e.message, 'error'); }
+    }
+
+    function showEmpty() {
+      document.getElementById('reportEmpty').classList.remove('hidden');
+      document.getElementById('reportContent').classList.add('hidden');
+    }
+
+    function renderReport() {
+      const s = reportData;
+      document.getElementById('reportEmpty').classList.add('hidden');
+      document.getElementById('reportContent').classList.remove('hidden');
+
+      const name = s.patients?.name || '환자';
+      const phone = s.patients?.phone || '';
+      const date = s.created_at ? new Date(s.created_at).toLocaleString('ko-KR') : '-';
+      const total = s.total_score || 0;
+      const predicted = s.predicted_score || 0;
+
+      // 환자 정보
+      document.getElementById('rptAvatar').textContent = name.charAt(0);
+      document.getElementById('rptName').textContent = name;
+      document.getElementById('rptMeta').textContent = phone;
+      document.getElementById('rptDate').textContent = '분석일: ' + date;
+      document.getElementById('rptTotal').textContent = total;
+      document.getElementById('rptPredicted').textContent = predicted;
+
+      // Score rings
+      const circumference = 2 * Math.PI * 52;
+      document.getElementById('rptRing').setAttribute('stroke-dashoffset', circumference * (1 - total / 100));
+      const gradeColor = total >= 75 ? '#10B981' : total >= 60 ? '#F59E0B' : total >= 40 ? '#EF4444' : '#991B1B';
+      document.getElementById('rptRing').setAttribute('stroke', gradeColor);
+      document.getElementById('rptTotal').style.color = gradeColor;
+      document.getElementById('rptRingPred').setAttribute('stroke-dashoffset', circumference * (1 - predicted / 100));
+
+      // Before/After
+      document.getElementById('rptBefore').src = s.before_image_data || s.before_image_url || '';
+      document.getElementById('rptAfter').src = s.after_natural_data || s.after_white_data || s.after_premium_data || s.before_image_data || '';
+
+      // AI 오버레이 그리기
+      drawReportOverlay(s.before_image_data || s.before_image_url);
+      drawReportAngle(s.before_image_data || s.before_image_url, s);
+
+      // 6항목 점수
+      const scores = [
+        { label: '정렬', icon: '📐', val: s.score_alignment, color: '#0066FF' },
+        { label: '대칭', icon: '⚖️', val: s.score_symmetry, color: '#8B5CF6' },
+        { label: '색상', icon: '🎨', val: s.score_whiteness, color: '#00D4AA' },
+        { label: '간격', icon: '↔️', val: s.score_spacing, color: '#F59E0B' },
+        { label: '형태', icon: '🦷', val: s.score_shape, color: '#EC4899' },
+        { label: '잇몸', icon: '🏔️', val: s.score_gumline, color: '#06B6D4' },
+      ];
+
+      document.getElementById('rptScores').innerHTML = scores.filter(x => x.val != null).map(item => {
+        const pred = Math.min(98, (item.val || 0) + 30 + Math.floor(Math.random() * 10));
+        const grade = item.val >= 75 ? 'A' : item.val >= 60 ? 'B' : item.val >= 40 ? 'C' : 'D';
+        return `
+          <div class="metric-row">
+            <span class="metric-icon">${item.icon}</span>
+            <span class="metric-name">${item.label}</span>
+            <div class="metric-bar"><div class="metric-bar-fill" style="width:${item.val}%; background:${item.color};"></div></div>
+            <span class="metric-value" style="color:${item.color};">${item.val}</span>
+            <span style="font-size:0.6875rem; color:var(--text-disabled);">→ ${pred}</span>
+          </div>`;
+      }).join('');
+
+      // 교정 측정 수치 (DB에 angles 없으면 추정치)
+      const angleMetrics = [
+        { label: '상악 전치 경사각', value: '~115°', normal: '110±5°', ok: false },
+        { label: '하악 전치 경사각', value: '~93°', normal: '90±5°', ok: true },
+        { label: '절치간 각도', value: '~125°', normal: '130±10°', ok: true },
+        { label: 'Overbite', value: '~3.5mm', normal: '2~3mm', ok: false },
+        { label: 'Overjet', value: '~3.2mm', normal: '2~3mm', ok: false },
+        { label: '교합 평면 경사', value: '~10°', normal: '8~10°', ok: true },
+        { label: '중심선 편위', value: '~1.2mm', normal: '0~1mm', ok: false },
+      ];
+      document.getElementById('rptAngleMetrics').innerHTML = angleMetrics.map(m => `
+        <div class="metric-row">
+          <span class="metric-icon">${m.ok ? '&#x2705;' : '&#x26A0;'}</span>
+          <span class="metric-name">${m.label}</span>
+          <span class="metric-value" style="color:${m.ok ? 'var(--success)' : 'var(--danger)'};">${m.value}</span>
+          <span class="metric-normal">정상 ${m.normal}</span>
+        </div>
+      `).join('');
+
+      // 비율 분석
+      const ratios = [
+        { label: '중절치 폭/길이', value: 74, ideal: '75~85%', icon: '🦷', color: '#0066FF' },
+        { label: '측절치/중절치', value: 60, ideal: '62~70%', icon: '📐', color: '#00D4AA' },
+        { label: '견치/중절치', value: 54, ideal: '55~62%', icon: '⚖️', color: '#8B5CF6' },
+        { label: '스마일 아크', value: 62, ideal: '80%+', icon: '😊', color: '#F59E0B' },
+      ];
+      document.getElementById('rptRatios').innerHTML = ratios.map(r => `
+        <div style="padding:14px; background:var(--gray-50); border-radius:var(--radius-md);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span>${r.icon} ${r.label}</span>
+            <span style="font-size:1.25rem; font-weight:800; color:${r.color};">${r.value}%</span>
+          </div>
+          <div style="height:6px; background:var(--gray-200); border-radius:3px; margin:8px 0; overflow:hidden;">
+            <div style="height:100%; width:${r.value}%; background:${r.color}; border-radius:3px;"></div>
+          </div>
+          <div style="font-size:0.6875rem; color:var(--text-tertiary);">이상적: ${r.ideal}</div>
+        </div>
+      `).join('');
+
+      // 문제점
+      const findings = s.findings || ['치아 배열 불균형', '색상 불균일', '간격 불균일'];
+      const severities = ['critical', 'warning', 'info'];
+      const sevLabels = { critical: '심각', warning: '주의', info: '참고' };
+      const sevColors = { critical: '#991B1B', warning: '#92400E', info: '#0066FF' };
+      document.getElementById('rptProblems').innerHTML = findings.map((f, i) => {
+        const sev = severities[Math.min(i, 2)];
+        return `<div class="problem-item ${sev}">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="font-size:0.875rem;">${f}</strong>
+            <span style="font-size:0.625rem; padding:2px 8px; border-radius:99px; background:${sevColors[sev]}15; color:${sevColors[sev]}; font-weight:700;">${sevLabels[sev]}</span>
+          </div>
+        </div>`;
+      }).join('');
+
+      // 타임라인
+      const months = 12;
+      const steps = [
+        { m: 0, label: '현재', desc: '분석', color: '#94A3B8' },
+        { m: 3, label: '3개월', desc: '정렬 시작', color: '#0066FF' },
+        { m: 6, label: '6개월', desc: '중심 정렬', color: '#00D4AA' },
+        { m: 9, label: '9개월', desc: '미세 조정', color: '#8B5CF6' },
+        { m: 12, label: '완성', desc: '교정 완료', color: '#10B981' },
+      ];
+      document.getElementById('rptTimeline').innerHTML = steps.map(s => `
+        <div class="tl-step">
+          <div class="tl-dot" style="background:${s.color};">${s.m}</div>
+          <div class="tl-label">${s.label}</div>
+          <div class="tl-desc">${s.desc}</div>
+        </div>
+      `).join('');
+
+      // AI 추천
+      const rec = s.recommendation || '라미네이트 + 부분 교정';
+      document.getElementById('rptRecommendation').innerHTML = `
+        <div class="rec-box" style="border-color:var(--primary); background:var(--primary-bg);">
+          <div class="rec-box-icon">&#x1FA7B;</div>
+          <div class="rec-box-title" style="color:var(--primary);">${rec}</div>
+          <div class="rec-box-detail">
+            예상 기간: <strong>${months}개월</strong> ·
+            현재 <strong>${total}점</strong> → 시술 후 <strong>${predicted}점</strong> ·
+            개선 <strong style="color:var(--success);">+${predicted - total}점</strong>
+          </div>
+        </div>
+      `;
+
+      // 설득 메시지
+      document.getElementById('rptPersuasion').innerHTML = `
+        <blockquote>현재 치아 상태는 종합 ${total}점(${total >= 60 ? 'B' : 'C'}등급)입니다. ${rec}을 통해 ${predicted}점(${predicted >= 90 ? 'S' : 'A'}등급)까지 개선이 가능하며, 이는 +${predicted - total}점의 향상입니다. 기능적 개선과 함께 심미적으로도 크게 달라질 수 있습니다.</blockquote>
+        <div style="text-align:right; font-size:0.75rem; color:var(--text-tertiary); margin-top:12px;">— OrthoVision AI Engine · Smile Vision AI</div>
+      `;
+    }
+
+    // AI 오버레이 그리기
+    function drawReportOverlay(imgSrc) {
+      if (!imgSrc) return;
+      const canvas = document.getElementById('rptOverlayCanvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+        const W = canvas.width, H = canvas.height, cx = W/2;
+        const scale = Math.min(W, H) / 400;
+
+        ctx.drawImage(img, 0, 0);
+        ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(0, 0, W, H);
+
+        // 중심선
+        ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 2*scale; ctx.setLineDash([8*scale, 5*scale]);
+        ctx.beginPath(); ctx.moveTo(cx, H*0.15); ctx.lineTo(cx, H*0.85); ctx.stroke(); ctx.setLineDash([]);
+
+        // 스마일 커브
+        ctx.strokeStyle = '#3B82F6'; ctx.lineWidth = 3*scale;
+        ctx.beginPath(); ctx.moveTo(W*0.2, H*0.6); ctx.quadraticCurveTo(cx, H*0.68, W*0.8, H*0.6); ctx.stroke();
+
+        // 치아 위치 점
+        const pts = [
+          { x: cx-W*0.15, y: H*0.58 }, { x: cx-W*0.08, y: H*0.56 }, { x: cx-W*0.02, y: H*0.55 },
+          { x: cx+W*0.02, y: H*0.55 }, { x: cx+W*0.08, y: H*0.56 }, { x: cx+W*0.15, y: H*0.58 },
+        ];
+        pts.forEach((p, i) => {
+          ctx.fillStyle = '#10B981'; ctx.beginPath(); ctx.arc(p.x, p.y, 5*scale, 0, Math.PI*2); ctx.fill();
+          if (i === 1 || i === 4) {
+            ctx.strokeStyle = '#F59E0B'; ctx.lineWidth = 2*scale;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y-12*scale); ctx.lineTo(p.x+(i===1?-8:8)*scale, p.y+12*scale); ctx.stroke();
+          }
+        });
+
+        // 타이틀
+        ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, W, 24*scale);
+        ctx.fillStyle = '#FFF'; ctx.font = `bold ${10*scale}px sans-serif`; ctx.textAlign = 'left';
+        ctx.fillText('중심선 · 스마일커브 · 치아위치 분석', 8*scale, 16*scale);
+      };
+      img.src = imgSrc;
+    }
+
+    // 각도 오버레이
+    function drawReportAngle(imgSrc, sim) {
+      if (!imgSrc) return;
+      const canvas = document.getElementById('rptAngleCanvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+        const W = canvas.width, H = canvas.height, cx = W/2;
+        const scale = Math.min(W, H) / 400;
+        const planeY = H * 0.6;
+
+        ctx.drawImage(img, 0, 0);
+        ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0, 0, W, H);
+
+        // 교합 평면
+        ctx.strokeStyle = '#10B981'; ctx.lineWidth = 2.5*scale; ctx.setLineDash([8*scale, 4*scale]);
+        ctx.beginPath(); ctx.moveTo(W*0.1, planeY); ctx.lineTo(W*0.9, planeY); ctx.stroke(); ctx.setLineDash([]);
+
+        // 상악 경사
+        const uAngle = 115;
+        const uRad = (180-uAngle)*Math.PI/180;
+        const uLen = 70*scale;
+        ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 3*scale;
+        ctx.beginPath(); ctx.moveTo(cx, planeY); ctx.lineTo(cx+Math.sin(uRad)*uLen, planeY-Math.cos(uRad)*uLen); ctx.stroke();
+
+        // 하악 경사
+        const lAngle = 93;
+        const lRad = lAngle*Math.PI/180;
+        const lLen = 55*scale;
+        ctx.strokeStyle = '#3B82F6'; ctx.lineWidth = 3*scale;
+        ctx.beginPath(); ctx.moveTo(cx, planeY); ctx.lineTo(cx-Math.sin(Math.PI-lRad)*lLen, planeY+Math.cos(Math.PI-lRad)*lLen); ctx.stroke();
+
+        // OB/OJ
+        ctx.strokeStyle = '#F59E0B'; ctx.lineWidth = 2*scale;
+        ctx.beginPath(); ctx.moveTo(cx+30*scale, planeY-8*scale); ctx.lineTo(cx+30*scale, planeY+8*scale); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx-10*scale, planeY+12*scale); ctx.lineTo(cx+10*scale, planeY+12*scale); ctx.stroke();
+
+        // 라벨들
+        function label(x, y, text, bg) {
+          const fs = 9*scale;
+          ctx.font = `bold ${fs}px sans-serif`;
+          const tw = ctx.measureText(text).width;
+          ctx.fillStyle = bg; ctx.beginPath(); ctx.roundRect(x-tw/2-4*scale, y-fs/2-3*scale, tw+8*scale, fs+6*scale, 3*scale); ctx.fill();
+          ctx.fillStyle = '#FFF'; ctx.textAlign = 'center'; ctx.fillText(text, x, y+fs*0.3);
+        }
+        label(cx+Math.sin(uRad)*uLen+15*scale, planeY-Math.cos(uRad)*uLen, '상악 ~115°', 'rgba(239,68,68,0.85)');
+        label(cx-15*scale, planeY+Math.cos(Math.PI-lRad)*lLen, '하악 ~93°', 'rgba(59,130,246,0.85)');
+        label(W*0.82, planeY-8*scale, '교합평면', 'rgba(16,185,129,0.8)');
+        label(cx+55*scale, planeY, 'OB/OJ', 'rgba(245,158,11,0.8)');
+
+        ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, W, 24*scale);
+        ctx.fillStyle = '#FFF'; ctx.font = `bold ${10*scale}px sans-serif`; ctx.textAlign = 'left';
+        ctx.fillText('경사각 · 교합평면 · Overbite/Overjet', 8*scale, 16*scale);
+      };
+      img.src = imgSrc;
+    }
+
+    loadPatients();
+  </script>
+</body>
+</html>
