@@ -671,7 +671,43 @@
         white:   { color: '#0066FF', label: '화이트형' },
       };
 
-      let detailHtml = '<div style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); margin-bottom:8px;">항목별 분석 (6가지 평가 기준)</div>';
+      let detailHtml = '';
+
+      // === 1. 종합 비교 4박스 (맨 위) ===
+      detailHtml += `
+        <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:100px; text-align:center; padding:14px; border-radius:var(--radius-md); background:#F1F5F9;">
+            <div style="font-size:0.625rem; color:var(--text-tertiary);">현재</div>
+            <div style="font-size:1.5rem; font-weight:800; color:${barStyles.current.color};">${total}</div>
+            <div style="font-size:0.625rem; font-weight:700; color:${barStyles.current.color};">${getGradeLabel(total)}등급</div>
+          </div>
+          <div style="flex:1; min-width:100px; text-align:center; padding:14px; border-radius:var(--radius-md); background:#D1FAE5;">
+            <div style="font-size:0.625rem; color:var(--text-tertiary);">자연형</div>
+            <div style="font-size:1.5rem; font-weight:800; color:${barStyles.natural.color};">${naturalTotal}</div>
+            <div style="font-size:0.625rem; font-weight:700; color:${barStyles.natural.color};">${getGradeLabel(naturalTotal)}등급 (+${naturalTotal-total})</div>
+          </div>
+          <div style="flex:1; min-width:100px; text-align:center; padding:14px; border-radius:var(--radius-md); background:#EDE9FE;">
+            <div style="font-size:0.625rem; color:var(--text-tertiary);">프리미엄형</div>
+            <div style="font-size:1.5rem; font-weight:800; color:${barStyles.premium.color};">${premiumTotal}</div>
+            <div style="font-size:0.625rem; font-weight:700; color:${barStyles.premium.color};">${getGradeLabel(premiumTotal)}등급 (+${premiumTotal-total})</div>
+          </div>
+          <div style="flex:1; min-width:100px; text-align:center; padding:14px; border-radius:var(--radius-md); background:#EBF3FF;">
+            <div style="font-size:0.625rem; color:var(--text-tertiary);">화이트형</div>
+            <div style="font-size:1.5rem; font-weight:800; color:${barStyles.white.color};">${whiteTotal}</div>
+            <div style="font-size:0.625rem; font-weight:700; color:${barStyles.white.color};">${getGradeLabel(whiteTotal)}등급 (+${whiteTotal-total})</div>
+          </div>
+        </div>
+      `;
+
+      // 총점 공식
+      detailHtml += `
+        <div class="score-formula" style="margin-bottom:20px;">
+          Total = 0.25×색상 + 0.20×정렬 + 0.18×대칭 + 0.15×간격 + 0.12×형태 + 0.10×잇몸
+        </div>
+      `;
+
+      // === 2. 항목별 분석 (아래) ===
+      detailHtml += '<div style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); margin-bottom:8px;">항목별 분석 (6가지 평가 기준)</div>';
 
       // 등급 범례
       detailHtml += `
@@ -687,9 +723,9 @@
       detailHtml += `
         <div style="display:flex; gap:14px; margin-bottom:14px; font-size:0.6875rem; color:var(--text-tertiary); flex-wrap:wrap;">
           <span style="display:flex;align-items:center;gap:4px;"><span style="width:16px;height:7px;border-radius:3px;background:${barStyles.current.color};display:inline-block;"></span>${barStyles.current.label}</span>
-          <span style="display:flex;align-items:center;gap:4px;"><span style="width:16px;height:7px;border-radius:3px;background:${barStyles.natural.color};display:inline-block;"></span>${barStyles.natural.label} (${naturalTotal}점)</span>
-          <span style="display:flex;align-items:center;gap:4px;"><span style="width:16px;height:7px;border-radius:3px;background:${barStyles.premium.color};display:inline-block;"></span>${barStyles.premium.label} (${premiumTotal}점)</span>
-          <span style="display:flex;align-items:center;gap:4px;"><span style="width:16px;height:7px;border-radius:3px;background:${barStyles.white.color};display:inline-block;"></span>${barStyles.white.label} (${whiteTotal}점)</span>
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:16px;height:7px;border-radius:3px;background:${barStyles.natural.color};display:inline-block;"></span>${barStyles.natural.label}</span>
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:16px;height:7px;border-radius:3px;background:${barStyles.premium.color};display:inline-block;"></span>${barStyles.premium.label}</span>
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:16px;height:7px;border-radius:3px;background:${barStyles.white.color};display:inline-block;"></span>${barStyles.white.label}</span>
         </div>`;
 
       items.forEach(item => {
@@ -718,39 +754,6 @@
           <div class="score-row-desc">${item.desc}</div>
         `;
       });
-
-      // 종합 비교
-      detailHtml += `
-        <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
-          <div style="flex:1; min-width:100px; text-align:center; padding:14px; border-radius:var(--radius-md); background:#F1F5F9;">
-            <div style="font-size:0.625rem; color:var(--text-tertiary);">현재</div>
-            <div style="font-size:1.5rem; font-weight:800; color:${barStyles.current.color};">${total}</div>
-            <div style="font-size:0.625rem; font-weight:700; color:${barStyles.current.color};">${getGradeLabel(total)}등급</div>
-          </div>
-          <div style="flex:1; min-width:100px; text-align:center; padding:14px; border-radius:var(--radius-md); background:#D1FAE5;">
-            <div style="font-size:0.625rem; color:var(--text-tertiary);">자연형</div>
-            <div style="font-size:1.5rem; font-weight:800; color:${barStyles.natural.color};">${naturalTotal}</div>
-            <div style="font-size:0.625rem; font-weight:700; color:${barStyles.natural.color};">${getGradeLabel(naturalTotal)}등급 (+${naturalTotal-total})</div>
-          </div>
-          <div style="flex:1; min-width:100px; text-align:center; padding:14px; border-radius:var(--radius-md); background:#EDE9FE;">
-            <div style="font-size:0.625rem; color:var(--text-tertiary);">프리미엄형</div>
-            <div style="font-size:1.5rem; font-weight:800; color:${barStyles.premium.color};">${premiumTotal}</div>
-            <div style="font-size:0.625rem; font-weight:700; color:${barStyles.premium.color};">${getGradeLabel(premiumTotal)}등급 (+${premiumTotal-total})</div>
-          </div>
-          <div style="flex:1; min-width:100px; text-align:center; padding:14px; border-radius:var(--radius-md); background:#EBF3FF;">
-            <div style="font-size:0.625rem; color:var(--text-tertiary);">화이트형</div>
-            <div style="font-size:1.5rem; font-weight:800; color:${barStyles.white.color};">${whiteTotal}</div>
-            <div style="font-size:0.625rem; font-weight:700; color:${barStyles.white.color};">${getGradeLabel(whiteTotal)}등급 (+${whiteTotal-total})</div>
-          </div>
-        </div>
-      `;
-
-      // 총점 공식
-      detailHtml += `
-        <div class="score-formula" style="margin-top:12px;">
-          Total = 0.25×색상 + 0.20×정렬 + 0.18×대칭 + 0.15×간격 + 0.12×형태 + 0.10×잇몸
-        </div>
-      `;
 
       document.getElementById('scoreDetailSection').innerHTML = detailHtml;
     }
