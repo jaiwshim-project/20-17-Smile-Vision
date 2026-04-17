@@ -135,6 +135,10 @@ function renderSidebar(activePage) {
         <span class="nav-item-icon">&#x1F504;</span> Before/After
       </a>
 
+      <a href="orthodontics.html" class="nav-item ${activePage === 'ortho' ? 'active' : ''}">
+        <span class="nav-item-icon">&#x1FA7B;</span> 교정 분석
+      </a>
+
       <div class="nav-section-label">Management</div>
       <a href="patients.html" class="nav-item ${activePage === 'patients' ? 'active' : ''}">
         <span class="nav-item-icon">&#x1F465;</span> 환자 관리
