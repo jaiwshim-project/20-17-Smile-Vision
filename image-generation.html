@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Generation AI — Smile Vision AI</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .tech-hero {
+      background: linear-gradient(135deg, #0F172A 0%, #1a1a3e 50%, #0F172A 100%);
+      border-radius: var(--radius-xl);
+      padding: 48px;
+      color: #FFF;
+      position: relative;
+      overflow: hidden;
+    }
+    .tech-hero::after {
+      content: '';
+      position: absolute;
+      top: -30%; right: -10%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .tech-hero h1 { color: #FFF; position: relative; z-index: 1; }
+    .tech-hero h1 span { color: #A78BFA; }
+    .tech-hero p { color: rgba(255,255,255,0.6); position: relative; z-index: 1; max-width: 600px; }
+    .tech-hero .version-badge {
+      display: inline-block; padding: 4px 14px; border-radius: var(--radius-full);
+      background: rgba(139,92,246,0.2); color: #A78BFA; font-size: 0.75rem; font-weight: 700;
+      margin-bottom: 12px; position: relative; z-index: 1;
+    }
+
+    .tech-section { margin-top: 32px; }
+    .tech-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+    .tech-card h3 { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .tech-card-icon {
+      width: 40px; height: 40px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+    }
+
+    .model-compare {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;
+    }
+    .model-card {
+      padding: 20px; border-radius: var(--radius-md); text-align: center;
+      border: 2px solid var(--gray-200); transition: all var(--duration) var(--ease);
+    }
+    .model-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .model-card.recommended { border-color: #8B5CF6; background: #F5F3FF; }
+    .model-card h4 { margin-bottom: 8px; }
+    .model-card .model-badge {
+      display: inline-block; padding: 2px 10px; border-radius: var(--radius-full);
+      font-size: 0.6875rem; font-weight: 700; margin-bottom: 12px;
+    }
+
+    .prompt-box {
+      background: var(--gray-900); color: #A78BFA; border-radius: var(--radius-md);
+      padding: 20px; font-family: 'Consolas', monospace; font-size: 0.8125rem;
+      line-height: 1.7; overflow-x: auto; margin-top: 12px;
+    }
+    .prompt-box .keyword { color: #00D4AA; font-weight: 700; }
+    .prompt-box .comment { color: rgba(255,255,255,0.3); }
+
+    .spec-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px; margin-top: 16px;
+    }
+    .spec-item {
+      padding: 16px; background: var(--gray-50); border-radius: var(--radius-md); text-align: center;
+    }
+    .spec-value { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+    .spec-label { font-size: 0.75rem; color: var(--text-tertiary); margin-top: 4px; }
+
+    .flow-diagram {
+      display: flex; align-items: center; gap: 0; margin: 24px 0; flex-wrap: wrap; justify-content: center;
+    }
+    .flow-step {
+      padding: 14px 20px; border-radius: var(--radius-md); text-align: center;
+      font-size: 0.8125rem; font-weight: 600; min-width: 130px;
+    }
+    .flow-arrow {
+      font-size: 1.25rem; color: var(--text-disabled); padding: 0 8px;
+    }
+
+    .example-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;
+    }
+    .example-item {
+      padding: 20px; background: var(--gray-50); border-radius: var(--radius-md);
+      border-left: 4px solid;
+    }
+    .example-item h4 { margin-bottom: 6px; font-size: 0.9375rem; }
+    .example-item p { font-size: 0.8125rem; }
+
+    @media (max-width: 768px) {
+      .tech-hero { padding: 28px 20px; }
+      .model-compare { grid-template-columns: 1fr; }
+      .example-grid { grid-template-columns: 1fr; }
+      .flow-diagram { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="app">
+    <div class="main">
+      <header class="header">
+        <div class="flex items-center gap-12">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <span class="header-title">Image Generation AI</span>
+        </div>
+        <div class="header-actions">
+          <a href="simulator.html" class="btn btn-sm btn-accent">AI 시뮬레이터</a>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Hero -->
+        <section class="tech-hero">
+          <div class="version-badge">TECHNOLOGY</div>
+          <h1>Image <span>Generation</span> AI</h1>
+          <p>Gemini 2.5 Flash Image 모델을 사용하여 환자의 치아 사진에 라미네이트 시술 결과를 실시간으로 생성합니다. 얼굴은 그대로 유지하면서 치아만 변환하는 의료 시뮬레이션 AI입니다.</p>
+        </section>
+
+        <!-- 핵심 기술 -->
+        <section class="tech-section">
+          <h2>핵심 기술</h2>
+
+          <div class="tech-card">
+            <h3><div class="tech-card-icon" style="background:#EDE9FE;">&#x1F9E0;</div> Gemini 2.5 Flash Image</h3>
+            <p>Google의 최신 멀티모달 AI 모델로, 이미지를 입력받아 수정된 이미지를 직접 생성합니다. 기존 이미지 필터 방식과 달리 <strong>치아의 형태, 정렬, 색상을 완전히 재설계</strong>할 수 있습니다.</p>
+
+            <div class="spec-grid">
+              <div class="spec-item">
+                <div class="spec-value">2.5</div>
+                <div class="spec-label">Gemini 모델 버전</div>
+              </div>
+              <div class="spec-item">
+                <div class="spec-value">3~10초</div>
+                <div class="spec-label">이미지 생성 시간</div>
+              </div>
+              <div class="spec-item">
+                <div class="spec-value">3종</div>
+                <div class="spec-label">스타일 동시 생성</div>
+              </div>
+              <div class="spec-item">
+                <div class="spec-value">1024px</div>
+                <div class="spec-label">출력 해상도</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tech-card">
+            <h3><div class="tech-card-icon" style="background:#FEF3C7;">&#x1F3A8;</div> 프롬프트 엔지니어링</h3>
+            <p>3가지 스타일(자연형/프리미엄형/화이트형)마다 최적화된 프롬프트를 사용합니다. 각 프롬프트는 치과 심미 기준에 맞춰 설계되었습니다.</p>
+
+            <div class="example-grid">
+              <div class="example-item" style="border-color:#10B981;">
+                <h4>자연형 (Natural)</h4>
+                <p>VITA A2 수준 밝기. 자연스러운 정렬 개선. "원래 좋은 치아" 느낌. 확실한 변화이지만 인공감 없음.</p>
+              </div>
+              <div class="example-item" style="border-color:#8B5CF6;">
+                <h4>프리미엄형 (Premium)</h4>
+                <p>VITA A1 수준 밝기. 이상적 비율의 정밀 정렬. 포슬린 질감의 매끄러운 광택. 최고급 시술 결과.</p>
+              </div>
+              <div class="example-item" style="border-color:#0066FF;">
+                <h4>화이트형 (White)</h4>
+                <p>VITA B1/Bleach 수준 순백. 완벽한 직선 배열. 할리우드 셀럽 스마일. 극적인 변화.</p>
+              </div>
+            </div>
+
+            <div class="prompt-box mt-16">
+              <div class="comment">// 프리미엄형 프롬프트 예시</div>
+              Edit this dental photo. Transform the teeth with <span class="keyword">premium luxury laminate veneers</span>.<br>
+              - Change tooth color to <span class="keyword">bright white (VITA A1)</span><br>
+              - <span class="keyword">Perfect straight alignment</span> with ideal proportions<br>
+              - Extremely <span class="keyword">smooth porcelain-like surface</span> with glossy shine<br>
+              - Result should look like <span class="keyword">the best dental work money can buy</span><br>
+              - Keep face, skin, expression <span class="keyword">EXACTLY the same</span>
+            </div>
+          </div>
+
+          <div class="tech-card">
+            <h3><div class="tech-card-icon" style="background:#D1FAE5;">&#x2696;</div> 기존 방식 vs AI 이미지 생성</h3>
+
+            <div class="model-compare">
+              <div class="model-card">
+                <div class="model-badge" style="background:#FEE2E2; color:#991B1B;">한계</div>
+                <h4>CSS 필터</h4>
+                <p style="font-size:0.8125rem; color:var(--text-tertiary);">밝기/대비 조정만 가능. 치아 형태 변경 불가. 색상만 약간 변함.</p>
+              </div>
+              <div class="model-card">
+                <div class="model-badge" style="background:#FEF3C7; color:#92400E;">중간</div>
+                <h4>Canvas 픽셀 처리</h4>
+                <p style="font-size:0.8125rem; color:var(--text-tertiary);">치아 영역 감지 후 화이트닝. 형태 변경 불가. MediaPipe 마스크 필요.</p>
+              </div>
+              <div class="model-card recommended">
+                <div class="model-badge" style="background:#EDE9FE; color:#7C3AED;">채택</div>
+                <h4>Gemini AI 생성</h4>
+                <p style="font-size:0.8125rem; color:#7C3AED; font-weight:600;">색상 + 형태 + 정렬 + 대칭 전부 변환. 실제 라미네이트 시술 결과와 동일 수준.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="tech-card">
+            <h3><div class="tech-card-icon" style="background:#EBF3FF;">&#x1F512;</div> 보안 및 개인정보</h3>
+            <ul style="font-size:0.875rem; color:var(--text-secondary); line-height:2; padding-left:20px;">
+              <li>API 키는 브라우저 localStorage에만 저장 (코드에 포함하지 않음)</li>
+              <li>환자 이미지는 Google Gemini API로 전송 후 즉시 폐기 (Google 정책)</li>
+              <li>생성된 결과 이미지는 Supabase DB에 암호화 저장</li>
+              <li>GitHub 등 공개 저장소에 API 키가 노출되면 자동 차단됨</li>
+            </ul>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/supabase.js"></script>
+</body>
+</html>
