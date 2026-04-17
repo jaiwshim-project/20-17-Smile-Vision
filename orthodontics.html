@@ -702,102 +702,239 @@ Keep face, skin, expression, lighting, background EXACTLY the same. ONLY modify 
       img.src = orthoImage;
     }
 
-    // 각도 분석 다이어그램
+    // 각도 분석 다이어그램 — 환자 사진 위에 오버레이
     function drawAngleDiagram() {
       const canvas = document.getElementById('angleCanvas');
       const ctx = canvas.getContext('2d');
-      const W = 400, H = 350;
-      canvas.width = W; canvas.height = H;
 
       const ang = orthoAnalysis.angles || {};
       const uAngle = ang.upper_incisor_angle || 110;
       const lAngle = ang.lower_incisor_angle || 90;
       const overbite = ang.overbite_mm || 2.5;
       const overjet = ang.overjet_mm || 2.5;
-
-      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(0, 0, W, H);
-
-      // 교합 평면 (수평 기준선)
-      const planeY = H * 0.55;
-      ctx.strokeStyle = '#10B981'; ctx.lineWidth = 2; ctx.setLineDash([6,4]);
-      ctx.beginPath(); ctx.moveTo(40, planeY); ctx.lineTo(W - 40, planeY); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = '#10B981'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'left';
-      ctx.fillText('교합 평면', W - 100, planeY - 6);
-
-      const cx = W / 2;
-
-      // 상악 중절치 (빨강)
-      const uRad = (180 - uAngle) * Math.PI / 180;
-      const uLen = 100;
-      const uEndX = cx + Math.sin(uRad) * uLen;
-      const uEndY = planeY - Math.cos(uRad) * uLen;
-      ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(cx, planeY); ctx.lineTo(uEndX, uEndY); ctx.stroke();
-      // 치아 모양
-      ctx.fillStyle = 'rgba(239,68,68,0.15)';
-      ctx.beginPath();
-      ctx.moveTo(cx - 8, planeY); ctx.lineTo(uEndX - 6, uEndY); ctx.lineTo(uEndX + 6, uEndY);
-      ctx.lineTo(cx + 8, planeY); ctx.closePath(); ctx.fill();
-      // 각도 표시
-      ctx.fillStyle = '#EF4444'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(uAngle + '°', uEndX + 20, uEndY + 15);
-      ctx.font = '9px sans-serif';
-      ctx.fillText('상악 중절치', uEndX + 25, uEndY + 28);
-
-      // 정상 범위 표시
-      const uNormRad = (180 - 110) * Math.PI / 180;
-      ctx.strokeStyle = 'rgba(239,68,68,0.25)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
-      ctx.beginPath();
-      ctx.moveTo(cx, planeY);
-      ctx.lineTo(cx + Math.sin(uNormRad) * uLen, planeY - Math.cos(uNormRad) * uLen);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(239,68,68,0.4)'; ctx.font = '8px sans-serif';
-      ctx.fillText('정상 110°', cx + Math.sin(uNormRad) * uLen + 5, planeY - Math.cos(uNormRad) * uLen + 5);
-
-      // 하악 중절치 (파랑)
-      const lRad = lAngle * Math.PI / 180;
-      const lLen = 80;
-      const lEndX = cx - Math.sin(Math.PI - lRad) * lLen;
-      const lEndY = planeY + Math.cos(Math.PI - lRad) * lLen;
-      ctx.strokeStyle = '#3B82F6'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(cx, planeY); ctx.lineTo(lEndX, lEndY); ctx.stroke();
-      ctx.fillStyle = 'rgba(59,130,246,0.15)';
-      ctx.beginPath();
-      ctx.moveTo(cx - 7, planeY); ctx.lineTo(lEndX - 5, lEndY); ctx.lineTo(lEndX + 5, lEndY);
-      ctx.lineTo(cx + 7, planeY); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#3B82F6'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(lAngle + '°', lEndX - 20, lEndY - 8);
-      ctx.font = '9px sans-serif';
-      ctx.fillText('하악 중절치', lEndX - 25, lEndY + 5);
-
-      // Overbite/Overjet 표시
-      ctx.strokeStyle = '#F59E0B'; ctx.lineWidth = 1.5;
-      // Overjet (수평)
-      ctx.beginPath(); ctx.moveTo(cx - 15, planeY + 5); ctx.lineTo(cx + 15, planeY + 5); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(cx + 15, planeY + 2); ctx.lineTo(cx + 15, planeY + 8); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(cx - 15, planeY + 2); ctx.lineTo(cx - 15, planeY + 8); ctx.stroke();
-      ctx.fillStyle = '#F59E0B'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText('Overjet ' + overjet + 'mm', cx, planeY + 18);
-      // Overbite (수직)
-      ctx.beginPath(); ctx.moveTo(cx + 25, planeY - 10); ctx.lineTo(cx + 25, planeY + 10); ctx.stroke();
-      ctx.fillText('OB ' + overbite + 'mm', cx + 50, planeY + 3);
-
-      // 절치간 각도 (호)
-      ctx.strokeStyle = 'rgba(139,92,246,0.6)'; ctx.lineWidth = 1.5;
       const iaAngle = ang.interincisal_angle || 130;
-      ctx.beginPath();
-      ctx.arc(cx, planeY, 30, -Math.PI/2 - uRad + Math.PI/2, -Math.PI/2 + (Math.PI - lRad) + Math.PI/2, false);
-      ctx.stroke();
-      ctx.fillStyle = '#8B5CF6'; ctx.font = 'bold 11px sans-serif';
-      ctx.fillText('절치간 ' + iaAngle + '°', cx, planeY - 38);
-      ctx.font = '8px sans-serif';
-      ctx.fillText('(정상 130±10°)', cx, planeY - 26);
+      const midDev = ang.upper_midline_deviation_mm || 0;
 
-      // 제목
-      ctx.fillStyle = 'var(--text-primary)'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left';
-      ctx.fillText('치아 경사각 분석', 12, 20);
+      // 환자 사진을 배경으로 그리기
+      const img = new Image();
+      img.onload = () => {
+        const W = img.naturalWidth;
+        const H = img.naturalHeight;
+        canvas.width = W;
+        canvas.height = H;
+
+        // 1. 환자 사진 그리기
+        ctx.drawImage(img, 0, 0);
+
+        // 2. 반투명 어두운 오버레이 (분석 라인이 잘 보이도록)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+        ctx.fillRect(0, 0, W, H);
+
+        const cx = W / 2;
+        // 치아 영역 중심 (사진 세로 55~70% 부근)
+        const teethCenterY = H * 0.6;
+        const scale = Math.min(W, H) / 400; // 사진 크기에 비례
+
+        // === 중심선 (빨간 점선) ===
+        ctx.strokeStyle = '#EF4444';
+        ctx.lineWidth = 2 * scale;
+        ctx.setLineDash([8 * scale, 6 * scale]);
+        ctx.beginPath();
+        ctx.moveTo(cx, H * 0.15);
+        ctx.lineTo(cx, H * 0.85);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 중심선 편위 표시
+        if (midDev > 0.5) {
+          const devPx = midDev * 15 * scale;
+          ctx.strokeStyle = '#F59E0B';
+          ctx.lineWidth = 2 * scale;
+          ctx.beginPath();
+          ctx.moveTo(cx, H * 0.15);
+          ctx.lineTo(cx + devPx, H * 0.15);
+          ctx.stroke();
+          // 화살표
+          ctx.beginPath();
+          ctx.moveTo(cx + devPx - 6*scale, H * 0.15 - 4*scale);
+          ctx.lineTo(cx + devPx, H * 0.15);
+          ctx.lineTo(cx + devPx - 6*scale, H * 0.15 + 4*scale);
+          ctx.stroke();
+        }
+
+        // 라벨 배경 함수
+        function drawLabel(x, y, text, bgColor, textColor, fontSize) {
+          const fs = (fontSize || 11) * scale;
+          ctx.font = `bold ${fs}px sans-serif`;
+          const tw = ctx.measureText(text).width;
+          const pad = 5 * scale;
+          ctx.fillStyle = bgColor;
+          ctx.beginPath();
+          ctx.roundRect(x - tw/2 - pad, y - fs/2 - pad, tw + pad*2, fs + pad*2, 4*scale);
+          ctx.fill();
+          ctx.fillStyle = textColor;
+          ctx.textAlign = 'center';
+          ctx.fillText(text, x, y + fs * 0.35);
+        }
+
+        // 중심선 라벨
+        drawLabel(cx, H * 0.13, '중심선' + (midDev > 0.5 ? ` (${midDev}mm 편위)` : ''), 'rgba(239,68,68,0.85)', '#FFF', 10);
+
+        // === 교합 평면 (초록 점선) ===
+        const planeY = teethCenterY;
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 2.5 * scale;
+        ctx.setLineDash([10 * scale, 5 * scale]);
+        ctx.beginPath();
+        ctx.moveTo(W * 0.1, planeY);
+        ctx.lineTo(W * 0.9, planeY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        drawLabel(W * 0.85, planeY - 12 * scale, '교합 평면', 'rgba(16,185,129,0.85)', '#FFF', 9);
+
+        // === 상악 중절치 경사각 (빨강) ===
+        const uRad = (180 - uAngle) * Math.PI / 180;
+        const uLen = 80 * scale;
+        const uStartX = cx;
+        const uStartY = planeY;
+        const uEndX = uStartX + Math.sin(uRad) * uLen;
+        const uEndY = uStartY - Math.cos(uRad) * uLen;
+
+        // 실제 경사선
+        ctx.strokeStyle = '#EF4444';
+        ctx.lineWidth = 3 * scale;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(uStartX, uStartY);
+        ctx.lineTo(uEndX, uEndY);
+        ctx.stroke();
+
+        // 정상 경사선 (점선)
+        const uNormRad = (180 - 110) * Math.PI / 180;
+        ctx.strokeStyle = 'rgba(239,68,68,0.35)';
+        ctx.lineWidth = 1.5 * scale;
+        ctx.setLineDash([4 * scale, 4 * scale]);
+        ctx.beginPath();
+        ctx.moveTo(uStartX, uStartY);
+        ctx.lineTo(uStartX + Math.sin(uNormRad) * uLen, uStartY - Math.cos(uNormRad) * uLen);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 각도 호
+        ctx.strokeStyle = '#EF4444';
+        ctx.lineWidth = 2 * scale;
+        const arcR = 25 * scale;
+        ctx.beginPath();
+        ctx.arc(uStartX, uStartY, arcR, -Math.PI/2, -Math.PI/2 + uRad, false);
+        ctx.stroke();
+
+        // 각도 라벨
+        drawLabel(uEndX + 15*scale, uEndY, `상악 ${uAngle}°`, 'rgba(239,68,68,0.9)', '#FFF', 11);
+        if (Math.abs(uAngle - 110) > 5) {
+          drawLabel(uEndX + 15*scale, uEndY + 18*scale, `정상 110° (${uAngle > 110 ? '+' : ''}${uAngle-110}°)`, 'rgba(239,68,68,0.6)', '#FFF', 8);
+        }
+
+        // === 하악 중절치 경사각 (파랑) ===
+        const lRad = (lAngle) * Math.PI / 180;
+        const lLen = 65 * scale;
+        const lEndX = uStartX - Math.sin(Math.PI - lRad) * lLen;
+        const lEndY = uStartY + Math.cos(Math.PI - lRad) * lLen;
+
+        ctx.strokeStyle = '#3B82F6';
+        ctx.lineWidth = 3 * scale;
+        ctx.beginPath();
+        ctx.moveTo(uStartX, uStartY);
+        ctx.lineTo(lEndX, lEndY);
+        ctx.stroke();
+
+        // 각도 호
+        ctx.strokeStyle = '#3B82F6';
+        ctx.lineWidth = 2 * scale;
+        ctx.beginPath();
+        ctx.arc(uStartX, uStartY, arcR * 0.8, Math.PI/2, Math.PI/2 + (Math.PI - lRad), false);
+        ctx.stroke();
+
+        drawLabel(lEndX - 15*scale, lEndY, `하악 ${lAngle}°`, 'rgba(59,130,246,0.9)', '#FFF', 11);
+
+        // === 절치간 각도 (보라) ===
+        ctx.strokeStyle = 'rgba(139,92,246,0.7)';
+        ctx.lineWidth = 2 * scale;
+        ctx.setLineDash([3*scale, 3*scale]);
+        ctx.beginPath();
+        ctx.arc(uStartX, uStartY, arcR * 1.5, -Math.PI/2 + uRad, Math.PI/2 + (Math.PI - lRad), false);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        drawLabel(cx - 45*scale, planeY - 30*scale, `절치간 ${iaAngle}°`, 'rgba(139,92,246,0.85)', '#FFF', 10);
+        if (Math.abs(iaAngle - 130) > 10) {
+          drawLabel(cx - 45*scale, planeY - 15*scale, `정상 130±10°`, 'rgba(139,92,246,0.5)', '#FFF', 7);
+        }
+
+        // === Overbite / Overjet (주황) ===
+        const obStartY = planeY - 8*scale;
+        const obEndY = planeY + 8*scale;
+
+        // Overbite (수직 화살표)
+        ctx.strokeStyle = '#F59E0B';
+        ctx.lineWidth = 2 * scale;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(cx + 35*scale, obStartY);
+        ctx.lineTo(cx + 35*scale, obEndY);
+        ctx.stroke();
+        // 화살표 머리
+        ctx.beginPath();
+        ctx.moveTo(cx + 35*scale - 3*scale, obStartY + 5*scale);
+        ctx.lineTo(cx + 35*scale, obStartY);
+        ctx.lineTo(cx + 35*scale + 3*scale, obStartY + 5*scale);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx + 35*scale - 3*scale, obEndY - 5*scale);
+        ctx.lineTo(cx + 35*scale, obEndY);
+        ctx.lineTo(cx + 35*scale + 3*scale, obEndY - 5*scale);
+        ctx.stroke();
+
+        drawLabel(cx + 70*scale, planeY - 5*scale, `OB ${overbite}mm`, 'rgba(245,158,11,0.85)', '#FFF', 9);
+
+        // Overjet (수평 화살표)
+        ctx.beginPath();
+        ctx.moveTo(cx - 12*scale, planeY + 15*scale);
+        ctx.lineTo(cx + 12*scale, planeY + 15*scale);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx + 12*scale - 5*scale, planeY + 15*scale - 3*scale);
+        ctx.lineTo(cx + 12*scale, planeY + 15*scale);
+        ctx.lineTo(cx + 12*scale - 5*scale, planeY + 15*scale + 3*scale);
+        ctx.stroke();
+
+        drawLabel(cx, planeY + 30*scale, `OJ ${overjet}mm`, 'rgba(245,158,11,0.85)', '#FFF', 9);
+
+        // === 상단 제목 바 ===
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, W, 30 * scale);
+        ctx.fillStyle = '#FFF';
+        ctx.font = `bold ${12 * scale}px sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.fillText('OrthoVision AI — 치아 경사각 분석', 10 * scale, 20 * scale);
+
+        // 이상 여부 아이콘
+        const issues = [];
+        if (Math.abs(uAngle - 110) > 5) issues.push('상악 경사');
+        if (Math.abs(lAngle - 90) > 5) issues.push('하악 경사');
+        if (overbite > 3.5) issues.push('과개교합');
+        if (overjet > 3.5) issues.push('과잉 Overjet');
+        if (midDev > 1) issues.push('중심선 편위');
+
+        if (issues.length > 0) {
+          ctx.fillStyle = 'rgba(239,68,68,0.9)';
+          ctx.fillRect(0, H - 28 * scale, W, 28 * scale);
+          ctx.fillStyle = '#FFF';
+          ctx.font = `bold ${10 * scale}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillText('⚠️ 발견된 이상: ' + issues.join(' · '), cx, H - 10 * scale);
+        }
+      };
+      img.src = orthoImage;
     }
 
     // 각도 측정 수치 테이블
@@ -903,77 +1040,106 @@ Keep face, skin, expression, lighting, background EXACTLY the same. ONLY modify 
       `).join('');
     }
 
-    // 교합 압력 히트맵
+    // 교합 압력 히트맵 — 환자 사진 위에 오버레이
     function drawOcclusionHeatmap() {
       const canvas = document.getElementById('occlusionCanvas');
       const ctx = canvas.getContext('2d');
-      const W = 400, H = 280;
-      canvas.width = W; canvas.height = H;
-
-      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(0, 0, W, H);
 
       const ang = orthoAnalysis.angles || {};
-      const cx = W / 2;
-
-      // 제목
-      ctx.fillStyle = '#1E293B'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText('교합 접촉점 & 압력 분포', cx, 20);
-
-      // 치아 아치 (상악)
-      ctx.strokeStyle = '#CBD5E1'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.ellipse(cx, 100, 150, 60, 0, Math.PI, 0); ctx.stroke();
-      ctx.fillStyle = '#94A3B8'; ctx.font = '9px sans-serif';
-      ctx.fillText('상악 (Upper)', cx, 48);
-
-      // 치아 아치 (하악)
-      ctx.strokeStyle = '#CBD5E1';
-      ctx.beginPath(); ctx.ellipse(cx, 180, 140, 55, 0, 0, Math.PI); ctx.stroke();
-      ctx.fillText('하악 (Lower)', cx, 245);
-
-      // 접촉점 시뮬레이션
-      const contacts = [
-        { x: cx - 100, y: 135, pressure: 0.9, label: '구치부 L' },
-        { x: cx - 60, y: 125, pressure: 0.5, label: '소구치 L' },
-        { x: cx - 25, y: 118, pressure: 0.7, label: '견치 L' },
-        { x: cx - 8, y: 115, pressure: 0.95, label: '측절치 L' },
-        { x: cx + 8, y: 115, pressure: 0.85, label: '측절치 R' },
-        { x: cx + 25, y: 118, pressure: 0.4, label: '견치 R' },
-        { x: cx + 60, y: 125, pressure: 0.6, label: '소구치 R' },
-        { x: cx + 100, y: 135, pressure: 0.8, label: '구치부 R' },
-      ];
-
-      contacts.forEach(c => {
-        // 압력 색상
-        let color;
-        if (c.pressure > 0.85) color = '#EF4444';
-        else if (c.pressure > 0.65) color = '#F59E0B';
-        else if (c.pressure > 0.4) color = '#10B981';
-        else color = '#3B82F6';
-
-        // 히트맵 원
-        const radius = 8 + c.pressure * 12;
-        const gradient = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, radius);
-        gradient.addColorStop(0, color);
-        gradient.addColorStop(1, color.replace(')', ',0.1)').replace('rgb', 'rgba'));
-        ctx.fillStyle = gradient;
-        ctx.beginPath(); ctx.arc(c.x, c.y, radius, 0, Math.PI * 2); ctx.fill();
-
-        // 압력 수치
-        ctx.fillStyle = '#FFF'; ctx.font = 'bold 8px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText(Math.round(c.pressure * 100), c.x, c.y + 3);
-      });
-
-      // Overbite/Overjet 표시
       const ob = ang.overbite_mm || 2.5;
       const oj = ang.overjet_mm || 2.5;
-      ctx.fillStyle = '#1E293B'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
-      ctx.fillText(`Overbite: ${ob}mm ${ob > 3.5 ? '⚠️ 과개교합' : '✅'}`, 10, H - 25);
-      ctx.fillText(`Overjet: ${oj}mm ${oj > 3.5 ? '⚠️ 과잉' : '✅'}`, 10, H - 10);
-
-      // Angle 분류
       const mc = orthoAnalysis.malocclusion_class || 'I';
-      ctx.textAlign = 'right';
-      ctx.fillText(`Angle Class ${mc}`, W - 10, H - 10);
+
+      const img = new Image();
+      img.onload = () => {
+        const W = img.naturalWidth;
+        const H = img.naturalHeight;
+        canvas.width = W; canvas.height = H;
+
+        // 1. 환자 사진
+        ctx.drawImage(img, 0, 0);
+
+        // 2. 반투명 오버레이
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(0, 0, W, H);
+
+        const cx = W / 2;
+        const scale = Math.min(W, H) / 400;
+        const teethY = H * 0.58;
+
+        // 라벨 배경 함수
+        function drawLabel(x, y, text, bgColor, textColor, fontSize) {
+          const fs = (fontSize || 10) * scale;
+          ctx.font = `bold ${fs}px sans-serif`;
+          const tw = ctx.measureText(text).width;
+          const pad = 4 * scale;
+          ctx.fillStyle = bgColor;
+          ctx.beginPath();
+          ctx.roundRect(x - tw/2 - pad, y - fs/2 - pad, tw + pad*2, fs + pad*2, 3*scale);
+          ctx.fill();
+          ctx.fillStyle = textColor;
+          ctx.textAlign = 'center';
+          ctx.fillText(text, x, y + fs * 0.35);
+        }
+
+        // 접촉점 — 치아 위치에 히트맵
+        const contacts = [
+          { rx: -0.28, ry: -0.02, pressure: 0.9 },
+          { rx: -0.18, ry: -0.04, pressure: 0.5 },
+          { rx: -0.10, ry: -0.05, pressure: 0.7 },
+          { rx: -0.03, ry: -0.055, pressure: 0.95 },
+          { rx: 0.03, ry: -0.055, pressure: 0.85 },
+          { rx: 0.10, ry: -0.05, pressure: 0.4 },
+          { rx: 0.18, ry: -0.04, pressure: 0.6 },
+          { rx: 0.28, ry: -0.02, pressure: 0.8 },
+        ];
+
+        contacts.forEach(c => {
+          const px = cx + c.rx * W;
+          const py = teethY + c.ry * H;
+
+          let color;
+          if (c.pressure > 0.85) color = 'rgba(239,68,68,';
+          else if (c.pressure > 0.65) color = 'rgba(245,158,11,';
+          else if (c.pressure > 0.4) color = 'rgba(16,185,129,';
+          else color = 'rgba(59,130,246,';
+
+          const radius = (10 + c.pressure * 18) * scale;
+          const gradient = ctx.createRadialGradient(px, py, 0, px, py, radius);
+          gradient.addColorStop(0, color + '0.8)');
+          gradient.addColorStop(0.5, color + '0.4)');
+          gradient.addColorStop(1, color + '0.05)');
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(px, py, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 압력 수치
+          ctx.fillStyle = '#FFF';
+          ctx.font = `bold ${9 * scale}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillText(Math.round(c.pressure * 100), px, py + 3 * scale);
+        });
+
+        // 상단 제목 바
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, W, 28 * scale);
+        ctx.fillStyle = '#FFF';
+        ctx.font = `bold ${11 * scale}px sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.fillText('OrthoVision AI — 교합 압력 분포', 10 * scale, 18 * scale);
+
+        // 하단 정보 바
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, H - 32 * scale, W, 32 * scale);
+        ctx.fillStyle = '#FFF';
+        ctx.font = `${10 * scale}px sans-serif`;
+        ctx.textAlign = 'left';
+        const obIcon = ob > 3.5 ? '⚠️' : '✅';
+        const ojIcon = oj > 3.5 ? '⚠️' : '✅';
+        ctx.fillText(`${obIcon} OB ${ob}mm  ${ojIcon} OJ ${oj}mm  |  Angle Class ${mc}`, 10 * scale, H - 12 * scale);
+      };
+      img.src = orthoImage;
     }
 
     // 교합 지표
