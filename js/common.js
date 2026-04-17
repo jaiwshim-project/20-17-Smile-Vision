@@ -136,10 +136,10 @@ function renderSidebar(activePage) {
       </a>
 
       <a href="orthodontics.html" class="nav-item ${activePage === 'ortho' ? 'active' : ''}">
-        <span class="nav-item-icon">&#x1FA7B;</span> 교정·교열·교합
+        <span class="nav-item-icon">&#x1FA7B;</span> 교정·교열·교합 분석
       </a>
       <a href="ortho-report.html" class="nav-item ${activePage === 'ortho-report' ? 'active' : ''}">
-        <span class="nav-item-icon">&#x1F4CB;</span> 분석 리포트
+        <span class="nav-item-icon">&#x1F4CB;</span> 교정·교열·교합 리포트
       </a>
 
       <div class="nav-section-label">Management</div>
