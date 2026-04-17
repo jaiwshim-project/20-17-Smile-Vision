@@ -131,6 +131,9 @@ function renderSidebar(activePage) {
       <a href="simulator.html" class="nav-item ${activePage === 'simulator' ? 'active' : ''}">
         <span class="nav-item-icon">&#x1F4F7;</span> AI 시뮬레이터
       </a>
+      <a href="compare.html" class="nav-item ${activePage === 'compare' ? 'active' : ''}">
+        <span class="nav-item-icon">&#x1F504;</span> Before/After
+      </a>
 
       <div class="nav-section-label">Management</div>
       <a href="patients.html" class="nav-item ${activePage === 'patients' ? 'active' : ''}">

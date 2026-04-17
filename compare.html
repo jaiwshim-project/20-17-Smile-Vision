@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Before / After 비교 — Smile Vision AI</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    /* --- Hero --- */
+    .compare-hero {
+      background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0F172A 100%);
+      border-radius: var(--radius-xl);
+      padding: 40px 48px;
+      color: #FFF;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .compare-hero h1 { color: #FFF; font-size: 2rem; }
+    .compare-hero h1 span { color: var(--accent); }
+    .compare-hero p { color: rgba(255,255,255,0.55); font-size: 0.9375rem; max-width: 480px; }
+
+    /* --- Patient Selector --- */
+    .patient-select-bar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .patient-select-bar select {
+      min-width: 240px;
+    }
+
+    /* --- Compare Card --- */
+    .compare-card {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--gray-200);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+    .compare-card-header {
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--gray-100);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .compare-date {
+      font-size: 0.8125rem;
+      color: var(--text-tertiary);
+    }
+
+    /* --- Slider Compare --- */
+    .slider-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      max-height: 560px;
+      overflow: hidden;
+      cursor: ew-resize;
+      user-select: none;
+      touch-action: none;
+      background: #0a0a0a;
+    }
+    .slider-wrap img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: contain;
+    }
+    .slider-before-clip {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 50%;
+      overflow: hidden;
+    }
+    .slider-before-clip img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .slider-line {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 50%;
+      width: 3px;
+      background: #FFF;
+      z-index: 10;
+      transform: translateX(-50%);
+    }
+    .slider-handle {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: #FFF;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.35);
+      z-index: 11;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      color: var(--gray-700);
+      pointer-events: none;
+    }
+    .slider-label {
+      position: absolute;
+      top: 16px;
+      padding: 6px 16px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      z-index: 5;
+    }
+    .slider-label.before { left: 16px; background: rgba(0,0,0,0.6); color: #FFF; }
+    .slider-label.after { right: 16px; background: rgba(0,212,170,0.85); color: #FFF; }
+
+    /* --- Side by Side --- */
+    .side-by-side {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: var(--gray-200);
+    }
+    .side-img {
+      position: relative;
+      background: #0a0a0a;
+      aspect-ratio: 1;
+      overflow: hidden;
+    }
+    .side-img img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+    }
+
+    /* --- View Toggle --- */
+    .view-toggle {
+      display: flex;
+      background: var(--gray-100);
+      border-radius: var(--radius-full);
+      padding: 3px;
+    }
+    .view-toggle-btn {
+      padding: 6px 16px;
+      border-radius: var(--radius-full);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      transition: all var(--duration) var(--ease);
+    }
+    .view-toggle-btn.active {
+      background: var(--surface);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* --- Style Tabs --- */
+    .style-tabs {
+      display: flex; gap: 8px;
+    }
+    .style-tab {
+      padding: 6px 16px;
+      border: 2px solid var(--gray-200);
+      border-radius: var(--radius-full);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      transition: all var(--duration) var(--ease);
+    }
+    .style-tab:hover { border-color: var(--primary); color: var(--primary); }
+    .style-tab.active { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); }
+
+    /* --- Score Summary --- */
+    .score-summary {
+      display: flex;
+      gap: 16px;
+      padding: 24px 28px;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--gray-100);
+    }
+    .score-box {
+      flex: 1;
+      min-width: 100px;
+      text-align: center;
+      padding: 16px;
+      border-radius: var(--radius-md);
+    }
+    .score-box-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+    }
+    .score-box-label {
+      font-size: 0.6875rem;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+    }
+    .score-items {
+      display: flex;
+      gap: 8px;
+      padding: 0 28px 20px;
+      flex-wrap: wrap;
+    }
+    .score-chip {
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    /* --- History List --- */
+    .history-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .history-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all var(--duration) var(--ease);
+    }
+    .history-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+      border-color: var(--primary);
+    }
+    .history-card.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-bg);
+    }
+    .history-thumb {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--gray-300);
+      height: 120px;
+    }
+    .history-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .history-info {
+      padding: 12px 16px;
+    }
+    .history-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* --- Empty State --- */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text-tertiary);
+    }
+    .empty-state-icon { font-size: 4rem; margin-bottom: 16px; }
+
+    /* --- Download Bar --- */
+    .download-bar {
+      display: flex;
+      gap: 12px;
+      padding: 16px 28px;
+      border-top: 1px solid var(--gray-100);
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+      .compare-hero { padding: 28px 20px; }
+      .compare-hero h1 { font-size: 1.5rem; }
+      .slider-wrap { aspect-ratio: 3/4; }
+      .side-by-side { grid-template-columns: 1fr; }
+      .score-summary { flex-direction: column; }
+      .history-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="app">
+    <div class="main">
+      <header class="header">
+        <div class="flex items-center gap-12">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <span class="header-title">Before / After 비교</span>
+        </div>
+        <div class="header-actions">
+          <a href="simulator.html" class="btn btn-sm btn-accent">AI 시뮬레이터</a>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Hero -->
+        <section class="compare-hero">
+          <div>
+            <h1>Before / <span>After</span></h1>
+            <p>환자의 치아 원본 사진과 AI 라미네이트 시뮬레이션 결과를 비교합니다. 슬라이드를 드래그하여 변화를 확인하세요.</p>
+          </div>
+          <div class="patient-select-bar">
+            <select class="form-input" id="patientSelect" onchange="onPatientChange()">
+              <option value="">환자를 선택하세요</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- Main Compare View -->
+        <div id="mainView" class="mt-24">
+          <!-- Empty State -->
+          <div id="emptyState" class="empty-state">
+            <div class="empty-state-icon">&#x1F4F7;</div>
+            <h3>시뮬레이션 기록이 없습니다</h3>
+            <p style="margin-top:8px;">환자를 선택하거나, <a href="simulator.html" style="color:var(--primary); font-weight:600;">AI 시뮬레이터</a>에서 촬영 후 저장하세요.</p>
+          </div>
+
+          <!-- Compare Content (hidden initially) -->
+          <div id="compareContent" class="hidden">
+            <!-- Controls -->
+            <div class="flex justify-between items-center mb-16" style="flex-wrap:wrap; gap:12px;">
+              <div class="view-toggle">
+                <button class="view-toggle-btn active" onclick="setView('slider', this)">슬라이드 비교</button>
+                <button class="view-toggle-btn" onclick="setView('side', this)">나란히 보기</button>
+              </div>
+              <div class="style-tabs" id="styleTabs">
+                <button class="style-tab active" data-style="natural" onclick="setStyle('natural', this)">자연형</button>
+                <button class="style-tab" data-style="white" onclick="setStyle('white', this)">화이트형</button>
+                <button class="style-tab" data-style="premium" onclick="setStyle('premium', this)">프리미엄형</button>
+              </div>
+            </div>
+
+            <!-- Compare Card -->
+            <div class="compare-card">
+              <div class="compare-card-header">
+                <div>
+                  <strong id="comparePatientName">-</strong>
+                  <span class="compare-date" id="compareDate"></span>
+                </div>
+                <span class="badge badge-primary" id="compareStyle">자연형</span>
+              </div>
+
+              <!-- Slider View -->
+              <div id="sliderView">
+                <div class="slider-wrap" id="sliderWrap">
+                  <img id="sliderAfter" src="" alt="After">
+                  <div class="slider-before-clip" id="sliderBeforeClip">
+                    <img id="sliderBefore" src="" alt="Before">
+                  </div>
+                  <div class="slider-line" id="sliderLine"></div>
+                  <div class="slider-handle" id="sliderHandle">&#x2194;</div>
+                  <span class="slider-label before">BEFORE</span>
+                  <span class="slider-label after">AFTER</span>
+                </div>
+              </div>
+
+              <!-- Side by Side View -->
+              <div id="sideView" class="hidden">
+                <div class="side-by-side">
+                  <div class="side-img">
+                    <img id="sideBefore" src="" alt="Before">
+                    <span class="slider-label before">BEFORE</span>
+                  </div>
+                  <div class="side-img">
+                    <img id="sideAfter" src="" alt="After">
+                    <span class="slider-label after">AFTER</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Scores -->
+              <div class="score-summary" id="scoreSummary"></div>
+              <div class="score-items" id="scoreItems"></div>
+
+              <!-- Download -->
+              <div class="download-bar">
+                <button class="btn btn-sm btn-outline" onclick="downloadBeforeAfter()">&#x1F4E5; Before/After 다운로드</button>
+                <button class="btn btn-sm btn-secondary" onclick="downloadBefore()">Before만 저장</button>
+                <button class="btn btn-sm btn-secondary" onclick="downloadAfter()">After만 저장</button>
+              </div>
+            </div>
+
+            <!-- Simulation History -->
+            <div class="mt-24" id="historySection">
+              <h3 class="mb-16">촬영 기록</h3>
+              <div class="history-grid" id="historyGrid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    document.getElementById('app').insertAdjacentHTML('afterbegin', renderSidebar('compare'));
+
+    let currentSim = null;
+    let allSims = [];
+    let currentView = 'slider';
+    let currentStyle = 'natural';
+
+    // --- Load Patients ---
+    async function loadPatients() {
+      if (!SupabaseDB.isReady()) SupabaseDB.init();
+      if (!SupabaseDB.isReady()) return;
+
+      try {
+        const patients = await SupabaseDB.getPatients({ limit: 200 });
+        const sel = document.getElementById('patientSelect');
+        patients.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = `${p.name}${p.phone ? ' (' + p.phone + ')' : ''}`;
+          sel.appendChild(opt);
+        });
+
+        // 전체 시뮬레이션도 로드해서 "all" 옵션 추가
+        const allSimsData = await SupabaseDB.getSimulations({ limit: 50 });
+        if (allSimsData.length > 0) {
+          const allOpt = document.createElement('option');
+          allOpt.value = 'all';
+          allOpt.textContent = '-- 전체 기록 (' + allSimsData.length + '건) --';
+          sel.insertBefore(allOpt, sel.options[1]);
+          allSims = allSimsData;
+        }
+      } catch (e) {
+        console.warn('환자 로드 실패:', e.message);
+      }
+    }
+
+    async function onPatientChange() {
+      const val = document.getElementById('patientSelect').value;
+      if (!val) {
+        document.getElementById('emptyState').classList.remove('hidden');
+        document.getElementById('compareContent').classList.add('hidden');
+        return;
+      }
+
+      try {
+        let sims;
+        if (val === 'all') {
+          sims = allSims;
+        } else {
+          sims = await SupabaseDB.getSimulations({ patientId: val, limit: 20 });
+        }
+
+        if (sims.length === 0) {
+          document.getElementById('emptyState').classList.remove('hidden');
+          document.getElementById('compareContent').classList.add('hidden');
+          return;
+        }
+
+        allSims = sims;
+        renderHistory(sims);
+        selectSim(sims[0]); // 최신 것 선택
+      } catch (e) {
+        showToast('데이터 로드 실패: ' + e.message, 'error');
+      }
+    }
+
+    // --- Render History ---
+    function renderHistory(sims) {
+      const grid = document.getElementById('historyGrid');
+      grid.innerHTML = sims.map((sim, idx) => {
+        const date = sim.created_at ? new Date(sim.created_at).toLocaleDateString('ko-KR') : '-';
+        const name = sim.patients?.name || '-';
+        const hasBefore = sim.before_image_data || sim.before_image_url;
+        const afterSrc = sim.after_natural_data || sim.after_white_data || sim.after_premium_data || '';
+        const styleLabel = { natural: '자연형', white: '화이트형', premium: '프리미엄형' }[sim.selected_style] || '자연형';
+
+        return `
+          <div class="history-card ${idx === 0 ? 'active' : ''}" id="histCard-${idx}" onclick="selectSimByIndex(${idx})">
+            <div class="history-thumb">
+              ${hasBefore ? `<img src="${sim.before_image_data || sim.before_image_url}" alt="Before">` : '<div style="background:var(--gray-100);display:flex;align-items:center;justify-content:center;color:var(--text-disabled);">No img</div>'}
+              ${afterSrc ? `<img src="${afterSrc}" alt="After">` : '<div style="background:var(--gray-100);display:flex;align-items:center;justify-content:center;color:var(--text-disabled);">No img</div>'}
+            </div>
+            <div class="history-info">
+              <div class="history-meta">
+                <strong style="font-size:0.875rem;">${name}</strong>
+                <span class="badge badge-primary" style="font-size:0.625rem;">${styleLabel}</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-top:6px;">
+                <span style="font-size:0.75rem; color:var(--text-tertiary);">${date}</span>
+                <span style="font-size:0.75rem; font-weight:700;">${sim.total_score || '-'}점 → ${sim.predicted_score || '-'}점</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function selectSimByIndex(idx) {
+      document.querySelectorAll('.history-card').forEach((c, i) => {
+        c.classList.toggle('active', i === idx);
+      });
+      selectSim(allSims[idx]);
+    }
+
+    // --- Select Simulation ---
+    function selectSim(sim) {
+      currentSim = sim;
+
+      document.getElementById('emptyState').classList.add('hidden');
+      document.getElementById('compareContent').classList.remove('hidden');
+
+      // Header
+      document.getElementById('comparePatientName').textContent = sim.patients?.name || '-';
+      document.getElementById('compareDate').textContent = sim.created_at ? new Date(sim.created_at).toLocaleString('ko-KR') : '';
+
+      // Style tabs: 있는 스타일만 활성화
+      const hasNatural = sim.after_natural_data || sim.after_natural_url;
+      const hasWhite = sim.after_white_data || sim.after_white_url;
+      const hasPremium = sim.after_premium_data || sim.after_premium_url;
+
+      // 기본 스타일 설정
+      if (sim.selected_style) currentStyle = sim.selected_style;
+      else if (hasNatural) currentStyle = 'natural';
+      else if (hasWhite) currentStyle = 'white';
+      else currentStyle = 'premium';
+
+      document.querySelectorAll('.style-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.style === currentStyle);
+      });
+
+      updateImages();
+      updateScores();
+      initSlider();
+    }
+
+    function updateImages() {
+      if (!currentSim) return;
+
+      const before = currentSim.before_image_data || currentSim.before_image_url || '';
+      const after = currentSim[`after_${currentStyle}_data`] || currentSim[`after_${currentStyle}_url`]
+        || currentSim.after_natural_data || currentSim.after_natural_url || '';
+
+      const styleLabel = { natural: '자연형', white: '화이트형', premium: '프리미엄형' }[currentStyle];
+      document.getElementById('compareStyle').textContent = styleLabel;
+
+      // Slider
+      document.getElementById('sliderBefore').src = before;
+      document.getElementById('sliderAfter').src = after;
+
+      // Side by side
+      document.getElementById('sideBefore').src = before;
+      document.getElementById('sideAfter').src = after;
+
+      // Adjust slider before clip image width
+      setTimeout(() => {
+        const wrap = document.getElementById('sliderWrap');
+        const clip = document.getElementById('sliderBeforeClip');
+        const imgs = clip.querySelectorAll('img');
+        imgs.forEach(img => img.style.width = wrap.offsetWidth + 'px');
+      }, 100);
+    }
+
+    function updateScores() {
+      if (!currentSim) return;
+
+      const s = currentSim;
+      const total = s.total_score || 0;
+      const predicted = s.predicted_score || 0;
+      const improvement = predicted - total;
+
+      // Grade
+      const gradeInfo = total >= 90 ? { g: 'S', c: '#0066FF', bg: '#EBF3FF' }
+        : total >= 75 ? { g: 'A', c: '#10B981', bg: '#D1FAE5' }
+        : total >= 60 ? { g: 'B', c: '#F59E0B', bg: '#FEF3C7' }
+        : total >= 40 ? { g: 'C', c: '#EF4444', bg: '#FEE2E2' }
+        : { g: 'D', c: '#991B1B', bg: '#FEE2E2' };
+
+      document.getElementById('scoreSummary').innerHTML = `
+        <div class="score-box" style="background:${gradeInfo.bg};">
+          <div class="score-box-value" style="color:${gradeInfo.c};">${gradeInfo.g}</div>
+          <div class="score-box-label">등급</div>
+        </div>
+        <div class="score-box" style="background:var(--primary-bg);">
+          <div class="score-box-value" style="color:var(--primary);">${total}</div>
+          <div class="score-box-label">현재 점수</div>
+        </div>
+        <div class="score-box" style="background:#D1FAE5;">
+          <div class="score-box-value" style="color:#065F46;">${predicted}</div>
+          <div class="score-box-label">시술 후 예상</div>
+        </div>
+        <div class="score-box" style="background:#FEF3C7;">
+          <div class="score-box-value" style="color:#92400E;">+${improvement}</div>
+          <div class="score-box-label">개선 점수</div>
+        </div>
+      `;
+
+      // Score chips
+      const items = {
+        '색상': { val: s.score_whiteness, color: '#0066FF' },
+        '정렬': { val: s.score_alignment, color: '#00D4AA' },
+        '대칭': { val: s.score_symmetry, color: '#8B5CF6' },
+        '간격': { val: s.score_spacing, color: '#F59E0B' },
+        '형태': { val: s.score_shape, color: '#EC4899' },
+        '잇몸': { val: s.score_gumline, color: '#06B6D4' },
+      };
+
+      document.getElementById('scoreItems').innerHTML = Object.entries(items)
+        .filter(([, v]) => v.val != null)
+        .map(([label, v]) => {
+          const bg = v.val >= 70 ? '#D1FAE5' : v.val >= 50 ? '#FEF3C7' : '#FEE2E2';
+          const c = v.val >= 70 ? '#065F46' : v.val >= 50 ? '#92400E' : '#991B1B';
+          return `<span class="score-chip" style="background:${bg}; color:${c};">${label} ${v.val}</span>`;
+        }).join('');
+    }
+
+    // --- Slider ---
+    function initSlider() {
+      const wrap = document.getElementById('sliderWrap');
+      const clip = document.getElementById('sliderBeforeClip');
+      const line = document.getElementById('sliderLine');
+      const handle = document.getElementById('sliderHandle');
+      let dragging = false;
+
+      function update(x) {
+        const rect = wrap.getBoundingClientRect();
+        let pct = ((x - rect.left) / rect.width) * 100;
+        pct = Math.max(2, Math.min(98, pct));
+        clip.style.width = pct + '%';
+        line.style.left = pct + '%';
+        handle.style.left = pct + '%';
+      }
+
+      wrap.onmousedown = (e) => { dragging = true; update(e.clientX); };
+      document.onmousemove = (e) => { if (dragging) update(e.clientX); };
+      document.onmouseup = () => dragging = false;
+
+      wrap.ontouchstart = (e) => { dragging = true; update(e.touches[0].clientX); };
+      document.ontouchmove = (e) => { if (dragging) update(e.touches[0].clientX); };
+      document.ontouchend = () => dragging = false;
+    }
+
+    // --- View Toggle ---
+    function setView(view, el) {
+      currentView = view;
+      document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
+      document.getElementById('sliderView').classList.toggle('hidden', view !== 'slider');
+      document.getElementById('sideView').classList.toggle('hidden', view !== 'side');
+    }
+
+    // --- Style Toggle ---
+    function setStyle(style, el) {
+      currentStyle = style;
+      document.querySelectorAll('.style-tab').forEach(t => t.classList.remove('active'));
+      if (el) el.classList.add('active');
+      updateImages();
+    }
+
+    // --- Downloads ---
+    function downloadBeforeAfter() {
+      if (!currentSim) return;
+      const before = currentSim.before_image_data || currentSim.before_image_url;
+      const after = currentSim[`after_${currentStyle}_data`] || currentSim[`after_${currentStyle}_url`] || '';
+      if (!before || !after) { showToast('이미지가 없습니다', 'warning'); return; }
+
+      const imgB = new Image();
+      const imgA = new Image();
+      let loaded = 0;
+      function onLoad() {
+        loaded++;
+        if (loaded < 2) return;
+        const W = Math.max(imgB.width, imgA.width);
+        const H = Math.max(imgB.height, imgA.height);
+        const canvas = document.createElement('canvas');
+        canvas.width = W * 2 + 4;
+        canvas.height = H;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(imgB, 0, 0, W, H);
+        ctx.drawImage(imgA, W + 4, 0, W, H);
+        // Labels
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(0, 0, 100, 32);
+        ctx.fillRect(W + 4, 0, 90, 32);
+        ctx.fillStyle = '#FFF'; ctx.font = 'bold 14px sans-serif';
+        ctx.fillText('BEFORE', 10, 22);
+        ctx.fillStyle = '#00D4AA';
+        ctx.fillText('AFTER', W + 14, 22);
+
+        const link = document.createElement('a');
+        link.download = 'smile-vision-compare.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('다운로드 완료', 'success');
+      }
+      imgB.onload = onLoad; imgA.onload = onLoad;
+      imgB.src = before; imgA.src = after;
+    }
+
+    function downloadBefore() {
+      if (!currentSim?.before_image_data) { showToast('이미지 없음', 'warning'); return; }
+      downloadSingle(currentSim.before_image_data, 'before.png');
+    }
+    function downloadAfter() {
+      const src = currentSim?.[`after_${currentStyle}_data`];
+      if (!src) { showToast('이미지 없음', 'warning'); return; }
+      downloadSingle(src, 'after-' + currentStyle + '.png');
+    }
+    function downloadSingle(src, name) {
+      const link = document.createElement('a');
+      link.download = name;
+      link.href = src;
+      link.click();
+      showToast('다운로드 완료', 'success');
+    }
+
+    // --- Init ---
+    loadPatients();
+  </script>
+</body>
+</html>
