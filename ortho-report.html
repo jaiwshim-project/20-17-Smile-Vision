@@ -225,6 +225,9 @@
                   <span class="photo-compare-label" style="background:rgba(0,212,170,0.85);">AFTER</span>
                 </div>
               </div>
+              <div style="margin-top:16px; padding:14px 16px; background:var(--gray-50); border-radius:var(--radius-sm); font-size:0.8125rem; color:var(--text-tertiary); line-height:1.7;">
+                Before/After 비교는 AI 시뮬레이션의 핵심 결과물입니다. 왼쪽(Before)은 환자의 현재 치아 상태이며, 오른쪽(After)은 OrthoVision AI가 교정·교열·교합 치료를 완료했을 때의 예상 모습입니다. 동일한 얼굴, 동일한 표정에서 치아만 변환되어 환자가 자신의 미래 모습을 직관적으로 체감할 수 있습니다. 이 시각적 비교가 치료 결정에 가장 큰 영향을 미칩니다.
+              </div>
             </div>
           </div>
 
@@ -242,19 +245,33 @@
                   <div class="angle-visual"><canvas id="rptAngleCanvas"></canvas></div>
                 </div>
               </div>
+              <div style="margin-top:16px; padding:14px 16px; background:var(--gray-50); border-radius:var(--radius-sm); font-size:0.8125rem; color:var(--text-tertiary); line-height:1.7;">
+                AI 오버레이 분석은 환자의 실제 치아 사진 위에 교정 분석 지표를 직접 표시합니다. 왼쪽은 중심선(얼굴 대비 치아 중심 위치), 스마일 커브(상악 전치 절단연의 곡선과 하순 곡선의 일치도), 개별 치아 위치와 기울기 이상을 시각화합니다. 오른쪽은 상악·하악 전치의 경사각, 교합 평면의 수평 기준선, 수직 피개(Overbite)와 수평 피개(Overjet)를 수치와 함께 표시합니다.
+              </div>
             </div>
           </div>
 
           <!-- 6항목 점수 -->
           <div class="card mt-24">
             <div class="card-header"><h3>&#x1F4CA; 항목별 점수</h3></div>
-            <div class="card-body" id="rptScores"></div>
+            <div class="card-body" id="rptScores">
+            </div>
+            <div style="padding:0 24px 20px;">
+              <div style="padding:14px 16px; background:var(--gray-50); border-radius:var(--radius-sm); font-size:0.8125rem; color:var(--text-tertiary); line-height:1.7;">
+                6가지 항목별 점수는 Dental Scoring Engine v1.0이 산출한 치아 상태 정량 평가입니다. 각 항목은 가중치가 적용되어 종합 점수에 반영됩니다(색상 25%, 정렬 20%, 대칭 18%, 간격 15%, 형태 12%, 잇몸 10%). 엄격한 기준을 적용하여 시술 전 자연치아는 대부분 40~55점(C등급)에 해당하며, 시술 후 75점 이상(A등급)으로 상승하는 것이 목표입니다.
+              </div>
+            </div>
           </div>
 
           <!-- 교정 측정 수치 -->
           <div class="card mt-24">
             <div class="card-header"><h3>&#x1F4D0; 교정 핵심 측정 수치</h3></div>
             <div class="card-body" id="rptAngleMetrics"></div>
+            <div style="padding:0 24px 20px;">
+              <div style="padding:14px 16px; background:var(--gray-50); border-radius:var(--radius-sm); font-size:0.8125rem; color:var(--text-tertiary); line-height:1.7;">
+                교정 핵심 측정 수치는 세팔로메트리(Cephalometry) 기반 교정 진단의 핵심 지표입니다. 상악 전치 경사각(U1-SN, 정상 110±5°)은 앞니의 돌출 정도를, 하악 전치 경사각(IMPA, 정상 90±5°)은 아래 앞니의 기울기를 나타냅니다. Overbite(수직 피개)와 Overjet(수평 피개)는 상하 치아의 맞물림 깊이와 거리로, 정상은 각각 2~3mm입니다. 이 수치들이 정상 범위를 벗어나면 교정 치료가 필요합니다.
+              </div>
+            </div>
           </div>
 
           <!-- 비율 분석 -->
@@ -262,6 +279,9 @@
             <div class="card-header"><h3>&#x2696; 치아 비율 분석</h3></div>
             <div class="card-body">
               <div class="grid-2" id="rptRatios"></div>
+              <div style="margin-top:16px; padding:14px 16px; background:var(--gray-50); border-radius:var(--radius-sm); font-size:0.8125rem; color:var(--text-tertiary); line-height:1.7;">
+                치아 비율 분석은 스마일 디자인의 핵심인 황금비율(Golden Ratio)을 기준으로 평가합니다. 이상적인 미소에서 중절치:측절치:견치의 너비 비율은 1.618:1.0:0.618이며, 개별 치아의 폭/길이 비율은 75~85%가 최적입니다. 스마일 아크(Smile Arc)는 상악 전치 절단연의 곡선이 하순 곡선과 평행할수록 아름다운 미소로 평가됩니다. 이 비율들이 이상치에서 벗어나면 라미네이트나 교정으로 개선합니다.
+              </div>
             </div>
           </div>
 
@@ -269,6 +289,11 @@
           <div class="card mt-24">
             <div class="card-header"><h3>&#x1F50D; 발견된 문제점</h3></div>
             <div class="card-body" id="rptProblems"></div>
+            <div style="padding:0 24px 20px;">
+              <div style="padding:14px 16px; background:var(--gray-50); border-radius:var(--radius-sm); font-size:0.8125rem; color:var(--text-tertiary); line-height:1.7;">
+                발견된 문제점은 AI가 교정·교열·교합 3개 영역을 종합 분석하여 도출한 결과입니다. 심각도는 3단계(심각/주의/참고)로 분류되며, 심각 등급은 즉시 치료가 필요한 상태, 주의 등급은 개선이 권장되는 상태, 참고 등급은 모니터링하면 되는 상태입니다. 각 문제점은 구체적인 수치와 함께 제시되어 환자가 자신의 상태를 객관적으로 이해할 수 있습니다.
+              </div>
+            </div>
           </div>
 
           <!-- AI 온톨로지 분석 -->
@@ -286,6 +311,9 @@
                 <span><span style="display:inline-block;width:24px;height:2px;background:#94A3B8;vertical-align:middle;margin-right:4px;"></span>정상 관계</span>
                 <span><span style="display:inline-block;width:24px;height:0;border-top:2px dashed #EF4444;vertical-align:middle;margin-right:4px;"></span>문제 관계</span>
               </div>
+              <div style="margin-top:16px; padding:14px 16px; background:var(--gray-50); border-radius:var(--radius-sm); font-size:0.8125rem; color:var(--text-tertiary); line-height:1.7;">
+                AI 온톨로지 분석은 환자의 치아 상태를 노드(점)와 엣지(선)로 구성된 지식 그래프로 시각화합니다. 중심에 환자 상태가 있고, 교정(파랑)·교열(보라)·교합(초록) 3개 영역으로 분기합니다. 각 영역에서 세부 항목(정렬, 색상, Overbite 등)이 연결되며, 문제가 발견된 항목은 빨간색으로 표시됩니다. 최종적으로 추천 치료(주황)가 문제 노드들과 연결되어, 왜 이 치료가 추천되는지 관계를 한눈에 파악할 수 있습니다.
+              </div>
             </div>
           </div>
 
@@ -294,6 +322,9 @@
             <div class="card-header"><h3>&#x1F4C5; 교정 시뮬레이션 타임라인</h3></div>
             <div class="card-body">
               <div class="timeline-mini" id="rptTimeline"></div>
+              <div style="margin-top:16px; padding:14px 16px; background:var(--gray-50); border-radius:var(--radius-sm); font-size:0.8125rem; color:var(--text-tertiary); line-height:1.7;">
+                교정 시뮬레이션 타임라인은 AI가 예측한 치료 진행 과정을 시각화합니다. 일반적으로 교정 치료는 0개월(현재)에서 시작하여 초기 정렬(3개월), 중심 정렬 완성(6개월), 미세 조정(9개월), 최종 완성(12개월)의 단계를 거칩니다. 실제 기간은 환자의 치아 상태, 교정 방식(고정식/투명교정), 협조도에 따라 달라질 수 있으며, 담당 의사와의 상담을 통해 정확한 계획을 수립합니다.
+              </div>
             </div>
           </div>
 
@@ -301,6 +332,11 @@
           <div class="card mt-24">
             <div class="card-header"><h3>&#x1F3AF; AI 치료 추천</h3></div>
             <div class="card-body" id="rptRecommendation"></div>
+            <div style="padding:0 24px 20px;">
+              <div style="padding:14px 16px; background:var(--gray-50); border-radius:var(--radius-sm); font-size:0.8125rem; color:var(--text-tertiary); line-height:1.7;">
+                AI 치료 추천은 OrthoVision AI 엔진의 의사결정 트리가 교합·정렬·각도·심미 데이터를 종합 분석하여 도출한 최적의 치료 방안입니다. 교합 문제가 심각하면 종합 교정을, 정렬 문제가 경미하면 라미네이트를, 심미 문제만 있으면 미백을 추천합니다. 복합 문제의 경우 투명 교정과 라미네이트 병행 등 맞춤형 치료 플랜을 제안합니다. 예상 기간, 점수 변화, 개선폭이 함께 제시됩니다.
+              </div>
+            </div>
           </div>
 
           <!-- 환자 메시지 -->
