@@ -333,6 +333,23 @@
     let orthoImage = null;
     let orthoAnalysis = null;
 
+    // 시뮬레이터에서 전달된 이미지 확인
+    (function checkSharedImage() {
+      const sharedImage = Store.get('shared_image', null);
+      const sharedFrom = Store.get('shared_from', null);
+      if (sharedImage && sharedFrom === 'simulator') {
+        // 전달된 이미지 사용
+        orthoImage = sharedImage;
+        Store.remove('shared_image');
+        Store.remove('shared_from');
+        // 바로 분석 시작
+        setTimeout(() => {
+          showToast('AI 시뮬레이터에서 촬영한 이미지로 분석을 시작합니다', 'info');
+          startOrthoAnalysis();
+        }, 500);
+      }
+    })();
+
     function handleOrthoFile(e) {
       const file = e.target.files[0];
       if (!file) return;
