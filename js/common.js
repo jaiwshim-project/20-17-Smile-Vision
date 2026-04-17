@@ -280,7 +280,7 @@ function renderFooter() {
           <a href="scoring.html" class="footer-link">Dental Scoring v1.0</a>
           <a href="command-center.html" class="footer-link">지휘센터</a>
           <span class="footer-link" style="cursor:default;">Gemini 2.5 Flash</span>
-          <span class="footer-link" style="cursor:default;">MediaPipe Face Mesh</span>
+          <a href="mediapipe.html" class="footer-link">MediaPipe Face Mesh</a>
         </div>
         <div class="footer-section">
           <h4>Technology</h4>
@@ -288,6 +288,7 @@ function renderFooter() {
           <a href="scoring.html" class="footer-link">Dental Scoring v1.0</a>
           <a href="image-generation.html" class="footer-link">Image Generation AI</a>
           <a href="pipeline.html" class="footer-link">4-Stage Pipeline</a>
+          <a href="mediapipe.html" class="footer-link">MediaPipe Face Mesh</a>
         </div>
       </div>
       <div class="footer-bottom">

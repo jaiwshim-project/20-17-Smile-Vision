@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediaPipe Face Mesh — Smile Vision AI</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .mp-hero {
+      background: linear-gradient(135deg, #0F172A 0%, #1a2a4e 50%, #0F172A 100%);
+      border-radius: var(--radius-xl);
+      padding: 48px;
+      color: #FFF;
+      position: relative;
+      overflow: hidden;
+    }
+    .mp-hero::after {
+      content: '';
+      position: absolute;
+      top: -20%; right: -5%;
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .mp-hero h1 { color: #FFF; position: relative; z-index: 1; }
+    .mp-hero h1 span { color: #60A5FA; }
+    .mp-hero p { color: rgba(255,255,255,0.6); position: relative; z-index: 1; max-width: 640px; }
+    .mp-hero .version-badge {
+      display: inline-block; padding: 4px 14px; border-radius: var(--radius-full);
+      background: rgba(59,130,246,0.2); color: #60A5FA; font-size: 0.75rem; font-weight: 700;
+      margin-bottom: 12px; position: relative; z-index: 1;
+    }
+
+    .tech-section { margin-top: 32px; }
+    .tech-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+    .tech-card h3 { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .tech-card-icon {
+      width: 40px; height: 40px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+    }
+
+    .spec-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px; margin-top: 16px;
+    }
+    .spec-item {
+      padding: 16px; background: var(--gray-50); border-radius: var(--radius-md); text-align: center;
+    }
+    .spec-value { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+    .spec-label { font-size: 0.75rem; color: var(--text-tertiary); margin-top: 4px; }
+
+    .landmark-table {
+      width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.875rem;
+    }
+    .landmark-table th {
+      background: var(--gray-50); padding: 12px 16px; text-align: left;
+      font-weight: 700; color: var(--text-primary); border-bottom: 2px solid var(--gray-200);
+    }
+    .landmark-table td {
+      padding: 12px 16px; border-bottom: 1px solid var(--gray-100); color: var(--text-secondary);
+    }
+    .landmark-table tr:hover td { background: var(--gray-50); }
+    .landmark-idx {
+      display: inline-block; padding: 2px 8px; border-radius: var(--radius-full);
+      font-size: 0.75rem; font-weight: 700; font-family: 'Consolas', monospace;
+      margin: 2px;
+    }
+    .landmark-upper { background: #DBEAFE; color: #1E40AF; }
+    .landmark-lower { background: #D1FAE5; color: #065F46; }
+
+    .detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;
+    }
+    .detail-box {
+      padding: 16px; background: var(--gray-50); border-radius: var(--radius-md);
+    }
+    .detail-box h4 { font-size: 0.875rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .detail-box ul {
+      font-size: 0.8125rem; color: var(--text-secondary); padding-left: 18px; line-height: 1.8;
+    }
+
+    .code-block {
+      background: var(--gray-900); color: #60A5FA; border-radius: var(--radius-md);
+      padding: 16px 20px; font-family: 'Consolas', monospace; font-size: 0.8125rem;
+      line-height: 1.6; overflow-x: auto; margin-top: 12px;
+    }
+    .code-block .fn { color: #4D94FF; }
+    .code-block .str { color: #F59E0B; }
+    .code-block .cmt { color: rgba(255,255,255,0.25); }
+    .code-block .kw { color: #A78BFA; }
+    .code-block .num { color: #34D399; }
+
+    .canvas-demo-wrap {
+      background: var(--gray-900); border-radius: var(--radius-lg); padding: 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 16px;
+    }
+    .canvas-demo-wrap canvas { border-radius: var(--radius-md); background: #1E293B; }
+    .canvas-demo-label { color: rgba(255,255,255,0.5); font-size: 0.75rem; }
+
+    .compare-table {
+      width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.875rem;
+    }
+    .compare-table th {
+      background: var(--gray-50); padding: 14px 16px; text-align: left;
+      font-weight: 700; color: var(--text-primary); border-bottom: 2px solid var(--gray-200);
+    }
+    .compare-table td {
+      padding: 14px 16px; border-bottom: 1px solid var(--gray-100); color: var(--text-secondary);
+    }
+    .compare-table tr:hover td { background: var(--gray-50); }
+    .compare-check { color: var(--success); font-weight: 700; }
+    .compare-cross { color: var(--danger); font-weight: 700; }
+    .compare-partial { color: var(--warning); font-weight: 700; }
+
+    .tech-stack {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;
+    }
+    .tech-tag {
+      padding: 4px 12px; border-radius: var(--radius-full);
+      font-size: 0.75rem; font-weight: 600;
+      border: 1px solid var(--gray-200); color: var(--text-secondary);
+    }
+
+    .usage-cards {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px; margin-top: 16px;
+    }
+    .usage-card {
+      padding: 24px; border-radius: var(--radius-md);
+      border-left: 4px solid; background: var(--gray-50);
+    }
+    .usage-card h4 { margin-bottom: 8px; font-size: 0.9375rem; }
+    .usage-card p { font-size: 0.8125rem; line-height: 1.7; }
+
+    @media (max-width: 768px) {
+      .mp-hero { padding: 28px 20px; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .usage-cards { grid-template-columns: 1fr; }
+      .landmark-table { font-size: 0.8125rem; }
+      .compare-table { font-size: 0.8125rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="app">
+    <div class="main">
+      <header class="header">
+        <div class="flex items-center gap-12">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <span class="header-title">MediaPipe Face Mesh</span>
+        </div>
+        <div class="header-actions">
+          <a href="simulator.html" class="btn btn-sm btn-accent">AI 시뮬레이터</a>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Hero -->
+        <section class="mp-hero">
+          <div class="version-badge">TECHNOLOGY</div>
+          <h1>MediaPipe <span>Face Mesh</span></h1>
+          <p>Google MediaPipe의 Face Mesh 솔루션은 단일 카메라 이미지에서 468개의 3D 얼굴 랜드마크를 실시간으로 추정합니다. Smile Vision AI의 치아 탐지 파이프라인의 첫 번째 핵심 엔진입니다.</p>
+        </section>
+
+        <!-- 468 랜드마크 기술 설명 -->
+        <section class="tech-section">
+          <h2>468 Landmarks 기술</h2>
+
+          <div class="tech-card">
+            <h3><div class="tech-card-icon" style="background:#DBEAFE;">&#x1F9E0;</div> Face Mesh 개요</h3>
+            <p>MediaPipe Face Mesh는 머신러닝 파이프라인을 통해 <strong>468개의 3D 얼굴 표면 랜드마크</strong>를 실시간으로 추정합니다. 얼굴의 윤곽, 눈, 코, 입, 눈썹 등 세밀한 영역까지 정밀하게 매핑하며, 특히 <code>refineLandmarks: true</code> 옵션을 활성화하면 입술과 눈 주변 영역이 더욱 정밀해집니다.</p>
+
+            <div class="detail-grid">
+              <div class="detail-box">
+                <h4>&#x1F4D0; 랜드마크 구성</h4>
+                <ul>
+                  <li>얼굴 윤곽 (Face Oval): ~36개</li>
+                  <li>눈 영역 (Eyes): ~32개</li>
+                  <li>눈썹 (Eyebrows): ~20개</li>
+                  <li>코 (Nose): ~18개</li>
+                  <li>입 (Lips): ~40개</li>
+                  <li>홍채 (Iris, refined): +10개</li>
+                  <li>기타 표면 포인트: ~322개</li>
+                </ul>
+              </div>
+              <div class="detail-box">
+                <h4>&#x2699; 동작 원리</h4>
+                <ul>
+                  <li>Stage 1: BlazeFace로 얼굴 위치 감지</li>
+                  <li>Stage 2: 감지된 얼굴 영역 크롭</li>
+                  <li>Stage 3: Mesh 모델로 468포인트 추정</li>
+                  <li>각 포인트는 (x, y, z) 3D 좌표</li>
+                  <li>x, y: 0~1 정규화 / z: 상대적 깊이</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tech-stack">
+              <span class="tech-tag">BlazeFace</span>
+              <span class="tech-tag">TFLite</span>
+              <span class="tech-tag">3D Mesh</span>
+              <span class="tech-tag">Real-time</span>
+              <span class="tech-tag">Single Camera</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 22개 내입술 랜드마크 상세 -->
+        <section class="tech-section">
+          <h2>치아 탐지를 위한 22개 내입술 랜드마크</h2>
+
+          <div class="tech-card">
+            <h3><div class="tech-card-icon" style="background:#D1FAE5;">&#x1FA7B;</div> Inner Lip Landmarks</h3>
+            <p>468개 랜드마크 중 치아 탐지에 핵심적으로 사용되는 22개 포인트입니다. 상부 내입술 라인과 하부 내입술 라인이 만드는 폐곡선 내부가 <strong>치아 노출 영역</strong>이 됩니다.</p>
+
+            <table class="landmark-table">
+              <thead>
+                <tr>
+                  <th>구분</th>
+                  <th>랜드마크 인덱스</th>
+                  <th>개수</th>
+                  <th>역할</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>상부 내입술</strong></td>
+                  <td>
+                    <span class="landmark-idx landmark-upper">78</span>
+                    <span class="landmark-idx landmark-upper">191</span>
+                    <span class="landmark-idx landmark-upper">80</span>
+                    <span class="landmark-idx landmark-upper">81</span>
+                    <span class="landmark-idx landmark-upper">82</span>
+                    <span class="landmark-idx landmark-upper">13</span>
+                    <span class="landmark-idx landmark-upper">312</span>
+                    <span class="landmark-idx landmark-upper">311</span>
+                    <span class="landmark-idx landmark-upper">310</span>
+                    <span class="landmark-idx landmark-upper">415</span>
+                    <span class="landmark-idx landmark-upper">308</span>
+                  </td>
+                  <td>11개</td>
+                  <td>상부 치아 경계선 (윗입술 안쪽)</td>
+                </tr>
+                <tr>
+                  <td><strong>하부 내입술</strong></td>
+                  <td>
+                    <span class="landmark-idx landmark-lower">308</span>
+                    <span class="landmark-idx landmark-lower">324</span>
+                    <span class="landmark-idx landmark-lower">318</span>
+                    <span class="landmark-idx landmark-lower">402</span>
+                    <span class="landmark-idx landmark-lower">317</span>
+                    <span class="landmark-idx landmark-lower">14</span>
+                    <span class="landmark-idx landmark-lower">87</span>
+                    <span class="landmark-idx landmark-lower">178</span>
+                    <span class="landmark-idx landmark-lower">88</span>
+                    <span class="landmark-idx landmark-lower">95</span>
+                    <span class="landmark-idx landmark-lower">78</span>
+                  </td>
+                  <td>11개</td>
+                  <td>하부 치아 경계선 (아랫입술 안쪽)</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="code-block" style="margin-top:20px;">
+              <span class="cmt">// 치아 영역 폴리곤 생성</span><br>
+              <span class="kw">const</span> upperInner = [<span class="num">78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 308</span>];<br>
+              <span class="kw">const</span> lowerInner = [<span class="num">308, 324, 318, 402, 317, 14, 87, 178, 88, 95, 78</span>];<br><br>
+              <span class="cmt">// 상부 + 하부 = 폐곡선 (치아 노출 영역)</span><br>
+              <span class="kw">const</span> teethRegion = [<br>
+              &nbsp;&nbsp;...upperInner.<span class="fn">map</span>(i => [lm[i].x * W, lm[i].y * H]),<br>
+              &nbsp;&nbsp;...lowerInner.<span class="fn">map</span>(i => [lm[i].x * W, lm[i].y * H])<br>
+              ];<br><br>
+              <span class="cmt">// Canvas 클리핑으로 치아 마스크 생성</span><br>
+              ctx.<span class="fn">beginPath</span>();<br>
+              teethRegion.<span class="fn">forEach</span>((pt, i) => {<br>
+              &nbsp;&nbsp;i === <span class="num">0</span> ? ctx.<span class="fn">moveTo</span>(pt[<span class="num">0</span>], pt[<span class="num">1</span>]) : ctx.<span class="fn">lineTo</span>(pt[<span class="num">0</span>], pt[<span class="num">1</span>]);<br>
+              });<br>
+              ctx.<span class="fn">closePath</span>();<br>
+              ctx.<span class="fn">clip</span>();
+            </div>
+
+            <p style="margin-top:16px; font-size:0.8125rem; color:var(--text-tertiary);">상부와 하부 랜드마크는 양쪽 끝에서 공유 포인트(78, 308)를 가지며, 이를 연결하면 입 벌림에 따라 동적으로 변하는 치아 노출 영역이 자동으로 계산됩니다.</p>
+          </div>
+        </section>
+
+        <!-- Canvas 랜드마크 시각화 데모 -->
+        <section class="tech-section">
+          <h2>랜드마크 시각화 데모</h2>
+
+          <div class="tech-card">
+            <h3><div class="tech-card-icon" style="background:#EDE9FE;">&#x1F3A8;</div> Face Mesh 도트 맵</h3>
+            <p>468개 랜드마크와 22개 내입술 랜드마크를 Canvas로 시각화한 데모입니다. 파란 점은 전체 얼굴 랜드마크, 빨간 점은 치아 탐지에 사용되는 내입술 랜드마크입니다.</p>
+
+            <div class="canvas-demo-wrap">
+              <canvas id="landmarkCanvas" width="400" height="480"></canvas>
+              <div class="canvas-demo-label">468개 전체 랜드마크(파랑) + 22개 내입술 랜드마크(빨강/초록)</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 성능 스펙 카드 -->
+        <section class="tech-section">
+          <h2>성능 스펙</h2>
+
+          <div class="spec-grid">
+            <div class="spec-item">
+              <div class="spec-value">468</div>
+              <div class="spec-label">3D 얼굴 랜드마크</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-value" style="color:var(--accent);">Real-time</div>
+              <div class="spec-label">처리 속도 (30+ FPS)</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-value" style="color:#8B5CF6;">WASM</div>
+              <div class="spec-label">실행 환경 (WebAssembly)</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-value" style="color:#F59E0B;">Refined</div>
+              <div class="spec-label">refineLandmarks 활성화</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-value" style="color:var(--danger);">22</div>
+              <div class="spec-label">내입술 랜드마크 (치아 탐지)</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-value" style="color:#065F46;">3D</div>
+              <div class="spec-label">좌표 체계 (x, y, z)</div>
+            </div>
+          </div>
+
+          <div class="tech-card" style="margin-top:20px;">
+            <h3><div class="tech-card-icon" style="background:#FEF3C7;">&#x2699;</div> 구성 설정</h3>
+            <div class="code-block">
+              <span class="cmt">// MediaPipe Face Mesh 초기화</span><br>
+              <span class="kw">const</span> faceMesh = <span class="kw">new</span> FaceMesh({<br>
+              &nbsp;&nbsp;locateFile: (file) => <span class="str">`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`</span><br>
+              });<br><br>
+              faceMesh.<span class="fn">setOptions</span>({<br>
+              &nbsp;&nbsp;maxNumFaces: <span class="num">1</span>,<br>
+              &nbsp;&nbsp;refineLandmarks: <span class="num">true</span>,&nbsp;&nbsp;<span class="cmt">// 입술/눈 정밀 랜드마크 활성화</span><br>
+              &nbsp;&nbsp;minDetectionConfidence: <span class="num">0.5</span>,<br>
+              &nbsp;&nbsp;minTrackingConfidence: <span class="num">0.5</span><br>
+              });<br><br>
+              faceMesh.<span class="fn">onResults</span>((results) => {<br>
+              &nbsp;&nbsp;<span class="kw">const</span> landmarks = results.multiFaceLandmarks[<span class="num">0</span>];<br>
+              &nbsp;&nbsp;<span class="cmt">// landmarks[i].x, landmarks[i].y, landmarks[i].z</span><br>
+              &nbsp;&nbsp;<span class="cmt">// 468개 포인트 (refineLandmarks 시 478개)</span><br>
+              });
+            </div>
+          </div>
+        </section>
+
+        <!-- Smile Vision AI 활용 방법 -->
+        <section class="tech-section">
+          <h2>Smile Vision AI에서의 활용</h2>
+
+          <div class="tech-card">
+            <h3><div class="tech-card-icon" style="background:#EBF3FF;">&#x1F680;</div> 파이프라인 통합</h3>
+            <p>MediaPipe Face Mesh는 Smile Vision AI의 <a href="pipeline.html" style="color:var(--primary); font-weight:600;">4-Stage Pipeline</a>에서 Stage 1(Face Detection)과 Stage 2(Teeth Segmentation)의 핵심 엔진으로 사용됩니다.</p>
+
+            <div class="usage-cards">
+              <div class="usage-card" style="border-color:var(--primary);">
+                <h4>Stage 1 - 얼굴 감지</h4>
+                <p>환자가 업로드한 치아 사진에서 얼굴을 감지하고 468개 랜드마크를 추출합니다. 얼굴이 감지되지 않으면 색상 기반 폴백 알고리즘으로 자동 전환됩니다.</p>
+              </div>
+              <div class="usage-card" style="border-color:var(--accent);">
+                <h4>Stage 2 - 치아 영역 분리</h4>
+                <p>22개 내입술 랜드마크로 생성한 폴리곤 내부에서 구강(어두운 영역)과 잇몸(붉은 영역)을 제거하고, 순수 치아 픽셀만 분리한 마스크를 생성합니다.</p>
+              </div>
+              <div class="usage-card" style="border-color:#8B5CF6;">
+                <h4>AI 이미지 생성 가이드</h4>
+                <p>추출된 치아 영역 정보를 기반으로 Gemini AI에게 정확한 변환 영역을 지시합니다. "이 영역만 라미네이트로 변환하라"는 맥락을 제공합니다.</p>
+              </div>
+              <div class="usage-card" style="border-color:#F59E0B;">
+                <h4>Dental Scoring</h4>
+                <p>치아 영역의 밝기, 정렬, 대칭성 등을 분석하여 6가지 항목의 치아 점수를 산출합니다. 랜드마크 좌표를 기반으로 정렬도와 대칭도를 계산합니다.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 기존 방식 vs MediaPipe 비교표 -->
+        <section class="tech-section">
+          <h2>기존 방식 vs MediaPipe</h2>
+
+          <div class="tech-card">
+            <h3><div class="tech-card-icon" style="background:#D1FAE5;">&#x2696;</div> 기술 비교</h3>
+
+            <table class="compare-table">
+              <thead>
+                <tr>
+                  <th>비교 항목</th>
+                  <th>수동 ROI 지정</th>
+                  <th>OpenCV Cascade</th>
+                  <th style="background:#EBF3FF;">MediaPipe Face Mesh</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>얼굴 감지</strong></td>
+                  <td><span class="compare-cross">&#x2718;</span> 수동</td>
+                  <td><span class="compare-partial">&#x25B2;</span> 바운딩 박스만</td>
+                  <td><span class="compare-check">&#x2714;</span> 468 랜드마크 자동</td>
+                </tr>
+                <tr>
+                  <td><strong>치아 영역 분리</strong></td>
+                  <td><span class="compare-cross">&#x2718;</span> 불가</td>
+                  <td><span class="compare-cross">&#x2718;</span> 불가</td>
+                  <td><span class="compare-check">&#x2714;</span> 22개 내입술 폴리곤</td>
+                </tr>
+                <tr>
+                  <td><strong>3D 깊이 정보</strong></td>
+                  <td><span class="compare-cross">&#x2718;</span> 없음</td>
+                  <td><span class="compare-cross">&#x2718;</span> 없음</td>
+                  <td><span class="compare-check">&#x2714;</span> x, y, z 좌표</td>
+                </tr>
+                <tr>
+                  <td><strong>실시간 처리</strong></td>
+                  <td><span class="compare-cross">&#x2718;</span> 수동 작업</td>
+                  <td><span class="compare-partial">&#x25B2;</span> 느림 (10 FPS)</td>
+                  <td><span class="compare-check">&#x2714;</span> 30+ FPS</td>
+                </tr>
+                <tr>
+                  <td><strong>브라우저 실행</strong></td>
+                  <td><span class="compare-check">&#x2714;</span> 가능</td>
+                  <td><span class="compare-cross">&#x2718;</span> 서버 필요</td>
+                  <td><span class="compare-check">&#x2714;</span> WASM 클라이언트</td>
+                </tr>
+                <tr>
+                  <td><strong>정밀도</strong></td>
+                  <td><span class="compare-cross">&#x2718;</span> 사용자 의존</td>
+                  <td><span class="compare-partial">&#x25B2;</span> 중간</td>
+                  <td><span class="compare-check">&#x2714;</span> 서브픽셀 정밀도</td>
+                </tr>
+                <tr>
+                  <td><strong>입 벌림 적응</strong></td>
+                  <td><span class="compare-cross">&#x2718;</span> 불가</td>
+                  <td><span class="compare-cross">&#x2718;</span> 불가</td>
+                  <td><span class="compare-check">&#x2714;</span> 동적 폴리곤</td>
+                </tr>
+                <tr>
+                  <td><strong>설치</strong></td>
+                  <td>없음</td>
+                  <td>OpenCV 라이브러리</td>
+                  <td>CDN 한 줄 (<span style="font-size:0.75rem;">@mediapipe/face_mesh</span>)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 푸터 연결 -->
+        <section class="tech-section">
+          <div class="tech-card" style="text-align:center; padding:36px;">
+            <h3 style="justify-content:center;">관련 기술 페이지</h3>
+            <p>Smile Vision AI의 다른 핵심 기술을 자세히 알아보세요.</p>
+            <div style="display:flex; gap:12px; justify-content:center; margin-top:20px; flex-wrap:wrap;">
+              <a href="pipeline.html" class="btn btn-sm btn-primary">4-Stage Pipeline</a>
+              <a href="image-generation.html" class="btn btn-sm btn-secondary">Image Generation AI</a>
+              <a href="scoring.html" class="btn btn-sm btn-secondary">Dental Scoring v1.0</a>
+              <a href="simulator.html" class="btn btn-sm btn-accent">AI 시뮬레이터 체험</a>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    // 사이드바 삽입
+    document.getElementById('app').insertAdjacentHTML('afterbegin', renderSidebar('mediapipe'));
+
+    // === Canvas 랜드마크 시각화 데모 ===
+    (function() {
+      const canvas = document.getElementById('landmarkCanvas');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+
+      // 간략화된 468 랜드마크 시뮬레이션 (얼굴 형태의 분포)
+      const allLandmarks = [];
+      const centerX = W / 2, centerY = H / 2.2;
+
+      // 얼굴 윤곽을 따라 분포하는 포인트 생성
+      for (let i = 0; i < 468; i++) {
+        const angle = (i / 468) * Math.PI * 2 + Math.random() * 0.5;
+        const radiusX = 120 + Math.random() * 50;
+        const radiusY = 160 + Math.random() * 50;
+        const noise = Math.random() * 0.7;
+        const x = centerX + Math.cos(angle) * radiusX * noise;
+        const y = centerY + Math.sin(angle) * radiusY * noise;
+        allLandmarks.push({ x: Math.max(10, Math.min(W - 10, x)), y: Math.max(10, Math.min(H - 10, y)) });
+      }
+
+      // 상부 내입술 22개 랜드마크 (입 위치에 배치)
+      const mouthCenterX = centerX;
+      const mouthCenterY = centerY + 80;
+      const upperInnerIdx = [78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 308];
+      const lowerInnerIdx = [308, 324, 318, 402, 317, 14, 87, 178, 88, 95, 78];
+
+      // 상부 내입술 좌표 (위로 볼록한 아치)
+      const upperPoints = [];
+      for (let i = 0; i < 11; i++) {
+        const t = i / 10;
+        const x = mouthCenterX - 55 + t * 110;
+        const y = mouthCenterY - 8 - Math.sin(t * Math.PI) * 12;
+        upperPoints.push({ x, y });
+        allLandmarks[upperInnerIdx[i]] = { x, y };
+      }
+
+      // 하부 내입술 좌표 (아래로 볼록한 아치)
+      const lowerPoints = [];
+      for (let i = 0; i < 11; i++) {
+        const t = i / 10;
+        const x = mouthCenterX + 55 - t * 110;
+        const y = mouthCenterY + 8 + Math.sin(t * Math.PI) * 10;
+        lowerPoints.push({ x, y });
+        allLandmarks[lowerInnerIdx[i]] = { x, y };
+      }
+
+      // 그리기
+      // 1. 전체 468 랜드마크 (파란 점)
+      ctx.fillStyle = 'rgba(96, 165, 250, 0.35)';
+      allLandmarks.forEach(pt => {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // 2. 상부 내입술 (빨간 점 + 연결선)
+      ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      upperPoints.forEach((pt, i) => {
+        i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y);
+      });
+      ctx.stroke();
+
+      ctx.fillStyle = '#EF4444';
+      upperPoints.forEach(pt => {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // 3. 하부 내입술 (초록 점 + 연결선)
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.7)';
+      ctx.beginPath();
+      lowerPoints.forEach((pt, i) => {
+        i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y);
+      });
+      ctx.stroke();
+
+      ctx.fillStyle = '#10B981';
+      lowerPoints.forEach(pt => {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // 4. 치아 영역 표시 (반투명 채움)
+      ctx.fillStyle = 'rgba(59, 130, 246, 0.08)';
+      ctx.beginPath();
+      upperPoints.forEach((pt, i) => {
+        i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y);
+      });
+      lowerPoints.forEach((pt) => {
+        ctx.lineTo(pt.x, pt.y);
+      });
+      ctx.closePath();
+      ctx.fill();
+
+      // 5. 라벨
+      ctx.font = '11px Pretendard, sans-serif';
+      ctx.fillStyle = '#EF4444';
+      ctx.fillText('Upper Inner (11)', mouthCenterX + 65, mouthCenterY - 14);
+      ctx.fillStyle = '#10B981';
+      ctx.fillText('Lower Inner (11)', mouthCenterX + 65, mouthCenterY + 18);
+      ctx.fillStyle = 'rgba(96, 165, 250, 0.6)';
+      ctx.fillText('468 Landmarks', 20, 20);
+    })();
+  </script>
+</body>
+</html>
