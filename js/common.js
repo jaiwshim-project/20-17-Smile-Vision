@@ -150,9 +150,6 @@ function renderSidebar(activePage) {
       <a href="command-center.html" class="nav-item ${activePage === 'command' ? 'active' : ''}">
         <span class="nav-item-icon">&#x1F3AF;</span> 지휘센터
       </a>
-      <a href="scoring.html" class="nav-item ${activePage === 'scoring' ? 'active' : ''}">
-        <span class="nav-item-icon">&#x1F9E0;</span> 점수 엔진
-      </a>
     </nav>
     <div class="sidebar-footer">
       <button class="sidebar-api-btn" onclick="openApiKeyModal()">
@@ -276,7 +273,7 @@ function renderFooter() {
         </div>
         <div class="footer-section">
           <h4>AI Engine</h4>
-          <a href="scoring.html" class="footer-link">점수 엔진</a>
+          <a href="scoring.html" class="footer-link">Dental Scoring v1.0</a>
           <a href="command-center.html" class="footer-link">지휘센터</a>
           <span class="footer-link" style="cursor:default;">Gemini 2.5 Flash</span>
           <span class="footer-link" style="cursor:default;">MediaPipe Face Mesh</span>
