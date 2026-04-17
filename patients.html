@@ -336,7 +336,7 @@
   <script>
     document.getElementById('app').insertAdjacentHTML('afterbegin', renderSidebar('patients'));
 
-    let patients = [...SampleData.patients];
+    let patients = [];
     let activeFilter = 'all';
     let usingSupabase = false;
 
@@ -345,44 +345,51 @@
       if (!SupabaseDB.isReady()) return;
       try {
         const data = await SupabaseDB.getPatients({ limit: 200 });
-        if (data && data.length > 0) {
-          patients = data.map(p => ({
-            id: p.id,
-            name: p.name,
-            age: p.age || '-',
-            phone: p.phone || '-',
-            gender: p.gender || '-',
-            status: '상담대기',
-            lastVisit: p.created_at?.split('T')[0] || '-',
-            score: 0,
-            treatment: '-',
-            _sims: p.simulations,
-          }));
-          // 시뮬레이션이 있는 환자는 최신 점수와 상태 반영
-          for (const p of patients) {
-            if (!p._sims) continue;
-            try {
-              const sims = await SupabaseDB.getSimulations({ patientId: p.id, limit: 1 });
-              if (sims.length > 0) {
-                const s = sims[0];
-                p.score = s.total_score || 0;
-                p.status = s.status || '촬영완료';
-                p.lastVisit = s.created_at?.split('T')[0] || p.lastVisit;
-                p.treatment = '라미네이트';
-              }
-            } catch {}
-          }
-          usingSupabase = true;
-          renderTable(patients);
-          // KPI 업데이트
-          document.querySelector('.kpi-value').textContent = patients.length;
-          showToast('Supabase에서 ' + patients.length + '명 로드됨', 'success');
+        patients = (data || []).map(p => ({
+          id: p.id,
+          name: p.name,
+          age: p.age || '-',
+          phone: p.phone || '-',
+          gender: p.gender || '-',
+          status: '상담대기',
+          lastVisit: p.created_at?.split('T')[0] || '-',
+          score: 0,
+          treatment: '-',
+          _sims: p.simulations,
+        }));
+        // 시뮬레이션이 있는 환자는 최신 점수와 상태 반영
+        for (const p of patients) {
+          if (!p._sims) continue;
+          try {
+            const sims = await SupabaseDB.getSimulations({ patientId: p.id, limit: 1 });
+            if (sims.length > 0) {
+              const s = sims[0];
+              p.score = s.total_score || 0;
+              p.status = s.status || '촬영완료';
+              p.lastVisit = s.created_at?.split('T')[0] || p.lastVisit;
+              p.treatment = '라미네이트';
+            }
+          } catch {}
         }
+        usingSupabase = true;
+        renderTable(patients);
+        updateKPI();
       } catch (e) {
-        console.warn('Supabase 로드 실패, 샘플 데이터 사용:', e.message);
+        console.warn('Supabase 로드 실패:', e.message);
+        renderTable([]);
+        updateKPI();
       }
     }
-    // 페이지 로드 후 Supabase 시도
+
+    function updateKPI() {
+      const kpis = document.querySelectorAll('.kpi-value');
+      if (kpis[0]) kpis[0].textContent = patients.length;
+      if (kpis[1]) kpis[1].textContent = patients.filter(p => p.lastVisit === new Date().toISOString().split('T')[0]).length;
+      if (kpis[2]) kpis[2].textContent = patients.filter(p => p.status === '상담대기').length;
+      if (kpis[3]) kpis[3].textContent = patients.length > 0 ? Math.round(patients.reduce((s,p) => s + (p.score||0), 0) / patients.length) : 0;
+    }
+
+    // 페이지 로드 후 Supabase에서 로드
     setTimeout(loadFromSupabase, 500);
 
     const avatarColors = ['#0066FF', '#00D4AA', '#8B5CF6', '#F59E0B', '#EF4444', '#EC4899'];
@@ -396,6 +403,15 @@
 
     function renderTable(list) {
       const tbody = document.getElementById('patientTable');
+      if (!list || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:48px 20px; color:var(--text-tertiary);">
+          <div style="font-size:2rem; margin-bottom:12px;">&#x1F465;</div>
+          등록된 환자가 없습니다.<br>
+          <button class="btn btn-primary btn-sm" style="margin-top:16px;" onclick="openModal('addPatientModal')">+ 새 환자 등록</button>
+          <span style="display:block; margin-top:8px; font-size:0.75rem;">또는 <a href="simulator.html" style="color:var(--primary);">AI 시뮬레이터</a>에서 촬영 후 저장하면 자동 등록됩니다.</span>
+        </td></tr>`;
+        return;
+      }
       tbody.innerHTML = list.map((p, i) => {
         const sc = statusConfig[p.status] || { bg: '#F1F5F9', color: '#475569' };
         const ac = avatarColors[i % avatarColors.length];
