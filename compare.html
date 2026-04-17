@@ -677,7 +677,15 @@
         return '#991B1B';
       }
 
-      let detailHtml = '<div style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); margin-bottom:12px;">항목별 분석 (6가지 평가 기준)</div>';
+      let detailHtml = '<div style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); margin-bottom:8px;">항목별 분석 (6가지 평가 기준)</div>';
+      detailHtml += `
+        <div class="grade-legend" style="margin-top:0; margin-bottom:14px; padding-top:0; border-top:none;">
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#0066FF;"></div>S (90~100) 최우수</div>
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#10B981;"></div>A (75~89) 우수</div>
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#F59E0B;"></div>B (60~74) 보통</div>
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#EF4444;"></div>C (40~59) 주의</div>
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#991B1B;"></div>D (0~39) 심각</div>
+        </div>`;
 
       items.forEach(item => {
         if (item.val == null) return;
@@ -708,16 +716,7 @@
         </div>
       `;
 
-      // 등급 범례
-      detailHtml += `
-        <div class="grade-legend">
-          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#0066FF;"></div>S (90~100) 최우수</div>
-          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#10B981;"></div>A (75~89) 우수</div>
-          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#F59E0B;"></div>B (60~74) 보통</div>
-          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#EF4444;"></div>C (40~59) 주의</div>
-          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#991B1B;"></div>D (0~39) 심각</div>
-        </div>
-      `;
+      // 등급 범례는 상단에 이미 표시됨
 
       document.getElementById('scoreDetailSection').innerHTML = detailHtml;
     }
