@@ -158,22 +158,6 @@ function renderSidebar(activePage) {
         <span class="nav-item-icon">&#x1F3AF;</span> 지휘센터
       </a>
 
-      <div class="nav-section-label">Technology</div>
-      <a href="orthovision.html" class="nav-item ${activePage === 'orthovision' ? 'active' : ''}">
-        <span class="nav-item-icon">&#x1F9E0;</span> OrthoVision AI
-      </a>
-      <a href="pipeline.html" class="nav-item ${activePage === 'pipeline' ? 'active' : ''}">
-        <span class="nav-item-icon">&#x1F504;</span> Pipeline
-      </a>
-      <a href="mediapipe.html" class="nav-item ${activePage === 'mediapipe' ? 'active' : ''}">
-        <span class="nav-item-icon">&#x1F4CD;</span> MediaPipe
-      </a>
-      <a href="image-generation.html" class="nav-item ${activePage === 'image-gen' ? 'active' : ''}">
-        <span class="nav-item-icon">&#x1F3A8;</span> Image Gen AI
-      </a>
-      <a href="scoring.html" class="nav-item ${activePage === 'scoring' ? 'active' : ''}">
-        <span class="nav-item-icon">&#x1F4CA;</span> Dental Scoring
-      </a>
     </nav>
     <div class="sidebar-footer">
       <button class="sidebar-api-btn" onclick="openApiKeyModal()">
