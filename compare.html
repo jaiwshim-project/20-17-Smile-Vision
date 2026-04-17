@@ -227,12 +227,10 @@
     }
     .score-row-icon { font-size: 1.1rem; width: 24px; text-align: center; flex-shrink: 0; }
     .score-row-label { width: 48px; font-size: 0.8125rem; font-weight: 700; flex-shrink: 0; }
-    .score-row-bars { flex: 1; display: flex; flex-direction: column; gap: 3px; }
-    .score-row-bar { height: 10px; background: var(--gray-100); border-radius: 5px; overflow: hidden; position: relative; }
-    .score-row-fill { height: 100%; border-radius: 5px; transition: width 0.8s var(--ease); }
-    .score-row-predicted { height: 10px; background: var(--gray-100); border-radius: 5px; overflow: hidden; }
-    .score-row-predicted-fill { height: 100%; border-radius: 5px; transition: width 0.8s var(--ease); opacity: 0.45; }
-    .score-row-values { width: 70px; flex-shrink: 0; text-align: right; line-height: 1.4; }
+    .score-row-bars { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .score-bar-line { height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s var(--ease); }
+    .score-row-values { width: 130px; flex-shrink: 0; text-align: right; line-height: 1.3; font-size: 0.6875rem; }
     .score-row-desc { font-size: 0.6875rem; color: var(--text-tertiary); margin-left: 82px; margin-top: -2px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-100); }
     .score-row-desc:last-of-type { border: none; }
 
@@ -690,63 +688,107 @@
         return 'D';
       }
 
+      // 스타일별 예상 점수 정의
+      const styleScores = {
+        natural:  { whiteness: 78, alignment: 80, symmetry: 82, spacing: 78, shape: 75, gumline: 62 },
+        white:    { whiteness: 95, alignment: 92, symmetry: 95, spacing: 93, shape: 90, gumline: 65 },
+        premium:  { whiteness: 85, alignment: 88, symmetry: 90, spacing: 85, shape: 88, gumline: 65 },
+      };
+
+      // 종합 점수 계산
+      function calcTotal(sc) {
+        return Math.round(sc.whiteness*0.25 + sc.alignment*0.20 + sc.symmetry*0.18 + sc.spacing*0.15 + sc.shape*0.12 + sc.gumline*0.10);
+      }
+      const naturalTotal = calcTotal(styleScores.natural);
+      const whiteTotal = calcTotal(styleScores.white);
+      const premiumTotal = calcTotal(styleScores.premium);
+
+      // 바 색상
+      const barStyles = {
+        current: { color: '#94A3B8', label: '현재' },
+        natural: { color: '#10B981', label: '자연형' },
+        premium: { color: '#8B5CF6', label: '프리미엄형' },
+        white:   { color: '#0066FF', label: '화이트형' },
+      };
+
       let detailHtml = '<div style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); margin-bottom:8px;">항목별 분석 (6가지 평가 기준)</div>';
+
+      // 등급 범례
       detailHtml += `
-        <div class="grade-legend" style="margin-top:0; margin-bottom:10px; padding-top:0; border-top:none;">
-          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#0066FF;"></div>S (90~100) 최우수</div>
-          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#10B981;"></div>A (75~89) 우수</div>
-          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#F59E0B;"></div>B (60~74) 보통</div>
-          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#EF4444;"></div>C (40~59) 주의</div>
-          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#991B1B;"></div>D (0~39) 심각</div>
+        <div class="grade-legend" style="margin-top:0; margin-bottom:8px; padding-top:0; border-top:none;">
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#0066FF;"></div>S (90~100)</div>
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#10B981;"></div>A (75~89)</div>
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#F59E0B;"></div>B (60~74)</div>
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#EF4444;"></div>C (40~59)</div>
+          <div class="grade-legend-item"><div class="grade-legend-dot" style="background:#991B1B;"></div>D (0~39)</div>
         </div>`;
-      // 바 범례 (현재 vs 예상)
+
+      // 바 범례 (4가지)
       detailHtml += `
-        <div style="display:flex; gap:16px; margin-bottom:10px; font-size:0.6875rem; color:var(--text-tertiary);">
-          <span style="display:flex; align-items:center; gap:5px;"><span style="width:20px;height:8px;border-radius:4px;background:var(--primary);display:inline-block;"></span> 현재 점수</span>
-          <span style="display:flex; align-items:center; gap:5px;"><span style="width:20px;height:8px;border-radius:4px;background:var(--primary);opacity:0.35;display:inline-block;"></span> 시술 후 예상</span>
+        <div style="display:flex; gap:14px; margin-bottom:14px; font-size:0.6875rem; color:var(--text-tertiary); flex-wrap:wrap;">
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:16px;height:7px;border-radius:3px;background:${barStyles.current.color};display:inline-block;"></span>${barStyles.current.label}</span>
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:16px;height:7px;border-radius:3px;background:${barStyles.natural.color};display:inline-block;"></span>${barStyles.natural.label} (${naturalTotal}점)</span>
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:16px;height:7px;border-radius:3px;background:${barStyles.premium.color};display:inline-block;"></span>${barStyles.premium.label} (${premiumTotal}점)</span>
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:16px;height:7px;border-radius:3px;background:${barStyles.white.color};display:inline-block;"></span>${barStyles.white.label} (${whiteTotal}점)</span>
         </div>`;
 
       items.forEach(item => {
         if (item.val == null) return;
-        const pred = predictItem(item.key, item.val);
-        const curGrade = getGradeLabel(item.val);
-        const predGrade = getGradeLabel(pred);
-        const curGradeBg = item.val >= 75 ? '#D1FAE5' : item.val >= 60 ? '#FEF3C7' : '#FEE2E2';
-        const curGradeC = item.val >= 75 ? '#065F46' : item.val >= 60 ? '#92400E' : '#991B1B';
-        const predGradeBg = pred >= 75 ? '#D1FAE5' : pred >= 60 ? '#FEF3C7' : '#FEE2E2';
-        const predGradeC = pred >= 75 ? '#065F46' : pred >= 60 ? '#92400E' : '#991B1B';
-        const diff = pred - item.val;
+        const natVal = styleScores.natural[item.key] || 0;
+        const preVal = styleScores.premium[item.key] || 0;
+        const whtVal = styleScores.white[item.key] || 0;
 
         detailHtml += `
           <div class="score-row">
             <span class="score-row-icon">${item.icon}</span>
             <span class="score-row-label">${item.label}</span>
             <div class="score-row-bars">
-              <div class="score-row-bar">
-                <div class="score-row-fill" style="width:${item.val}%; background:${item.color};"></div>
-              </div>
-              <div class="score-row-predicted">
-                <div class="score-row-predicted-fill" style="width:${pred}%; background:${item.color};"></div>
-              </div>
+              <div class="score-bar-line"><div class="score-bar-fill" style="width:${item.val}%; background:${barStyles.current.color};"></div></div>
+              <div class="score-bar-line"><div class="score-bar-fill" style="width:${natVal}%; background:${barStyles.natural.color};"></div></div>
+              <div class="score-bar-line"><div class="score-bar-fill" style="width:${preVal}%; background:${barStyles.premium.color};"></div></div>
+              <div class="score-bar-line"><div class="score-bar-fill" style="width:${whtVal}%; background:${barStyles.white.color};"></div></div>
             </div>
             <div class="score-row-values">
-              <div style="font-size:0.875rem; font-weight:800; color:${item.color};">${item.val}<span style="font-size:0.6875rem; color:var(--text-disabled); font-weight:400;"> → </span><span style="color:#065F46;">${pred}</span></div>
-              <div style="font-size:0.625rem; display:flex; gap:4px; justify-content:flex-end; align-items:center;">
-                <span style="padding:1px 5px; border-radius:99px; background:${curGradeBg}; color:${curGradeC}; font-weight:700;">${curGrade}</span>
-                <span style="color:var(--text-disabled);">→</span>
-                <span style="padding:1px 5px; border-radius:99px; background:${predGradeBg}; color:${predGradeC}; font-weight:700;">${predGrade}</span>
-                <span style="color:var(--success); font-weight:700;">+${diff}</span>
-              </div>
+              <div style="color:${barStyles.current.color}; font-weight:700;">${item.val}</div>
+              <div style="color:${barStyles.natural.color}; font-weight:700;">${natVal}</div>
+              <div style="color:${barStyles.premium.color}; font-weight:700;">${preVal}</div>
+              <div style="color:${barStyles.white.color}; font-weight:700;">${whtVal}</div>
             </div>
           </div>
           <div class="score-row-desc">${item.desc}</div>
         `;
       });
 
+      // 종합 비교
+      detailHtml += `
+        <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:100px; text-align:center; padding:14px; border-radius:var(--radius-md); background:#F1F5F9;">
+            <div style="font-size:0.625rem; color:var(--text-tertiary);">현재</div>
+            <div style="font-size:1.5rem; font-weight:800; color:${barStyles.current.color};">${total}</div>
+            <div style="font-size:0.625rem; font-weight:700; color:${barStyles.current.color};">${getGradeLabel(total)}등급</div>
+          </div>
+          <div style="flex:1; min-width:100px; text-align:center; padding:14px; border-radius:var(--radius-md); background:#D1FAE5;">
+            <div style="font-size:0.625rem; color:var(--text-tertiary);">자연형</div>
+            <div style="font-size:1.5rem; font-weight:800; color:${barStyles.natural.color};">${naturalTotal}</div>
+            <div style="font-size:0.625rem; font-weight:700; color:${barStyles.natural.color};">${getGradeLabel(naturalTotal)}등급 (+${naturalTotal-total})</div>
+          </div>
+          <div style="flex:1; min-width:100px; text-align:center; padding:14px; border-radius:var(--radius-md); background:#EDE9FE;">
+            <div style="font-size:0.625rem; color:var(--text-tertiary);">프리미엄형</div>
+            <div style="font-size:1.5rem; font-weight:800; color:${barStyles.premium.color};">${premiumTotal}</div>
+            <div style="font-size:0.625rem; font-weight:700; color:${barStyles.premium.color};">${getGradeLabel(premiumTotal)}등급 (+${premiumTotal-total})</div>
+          </div>
+          <div style="flex:1; min-width:100px; text-align:center; padding:14px; border-radius:var(--radius-md); background:#EBF3FF;">
+            <div style="font-size:0.625rem; color:var(--text-tertiary);">화이트형</div>
+            <div style="font-size:1.5rem; font-weight:800; color:${barStyles.white.color};">${whiteTotal}</div>
+            <div style="font-size:0.625rem; font-weight:700; color:${barStyles.white.color};">${getGradeLabel(whiteTotal)}등급 (+${whiteTotal-total})</div>
+          </div>
+        </div>
+      `;
+
       // 총점 공식
       detailHtml += `
-        <div class="score-formula">
-          Total = 0.25×색상 + 0.20×정렬 + 0.18×대칭 + 0.15×간격 + 0.12×형태 + 0.10×잇몸 = <strong style="color:var(--primary);">${total}점</strong> → <strong style="color:#065F46;">${predicted}점</strong>
+        <div class="score-formula" style="margin-top:12px;">
+          Total = 0.25×색상 + 0.20×정렬 + 0.18×대칭 + 0.15×간격 + 0.12×형태 + 0.10×잇몸
         </div>
       `;
 
