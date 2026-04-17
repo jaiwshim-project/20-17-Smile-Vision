@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smile Vision AI — 치과 AI 시뮬레이션 플랫폼</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .hero {
+      background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0F172A 100%);
+      border-radius: var(--radius-xl);
+      padding: 60px 48px;
+      position: relative;
+      overflow: hidden;
+      color: #FFF;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%; right: -20%;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(0,102,255,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -30%; left: 10%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(0,212,170,0.1) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 640px; }
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1.2;
+      color: #FFF;
+      margin-bottom: 16px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hero-stats {
+      display: flex; gap: 40px; margin-top: 48px;
+      position: relative; z-index: 1;
+    }
+    .hero-stat-value {
+      font-size: 2rem; font-weight: 800; color: var(--accent);
+    }
+    .hero-stat-label {
+      font-size: 0.8125rem; color: rgba(255,255,255,0.5); margin-top: 4px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+    .feature-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+      transition: all var(--duration) var(--ease);
+      text-decoration: none;
+      display: block;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+    .feature-icon {
+      width: 56px; height: 56px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+    .feature-icon.blue { background: var(--primary-bg); }
+    .feature-icon.green { background: #D1FAE5; }
+    .feature-icon.purple { background: #EDE9FE; }
+    .feature-icon.amber { background: #FEF3C7; }
+    .feature-icon.rose { background: #FFE4E6; }
+    .feature-icon.cyan { background: #CFFAFE; }
+    .feature-card h3 { margin-bottom: 8px; }
+    .feature-card p { font-size: 0.875rem; }
+    .feature-tag {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--primary-bg);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+    }
+
+    .workflow-section { margin-top: 48px; }
+    .workflow-steps {
+      display: flex;
+      gap: 0;
+      margin-top: 24px;
+      position: relative;
+    }
+    .workflow-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      padding: 0 12px;
+    }
+    .workflow-step::after {
+      content: '';
+      position: absolute;
+      top: 28px; right: -50%;
+      width: 100%; height: 2px;
+      background: var(--gray-200);
+      z-index: 0;
+    }
+    .workflow-step:last-child::after { display: none; }
+    .step-num {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #FFF;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; font-weight: 800;
+      margin: 0 auto 16px;
+      position: relative; z-index: 1;
+    }
+    .step-title { font-weight: 700; font-size: 0.9375rem; margin-bottom: 4px; }
+    .step-desc { font-size: 0.8125rem; color: var(--text-tertiary); }
+
+    .api-setup {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      border: 1px solid var(--gray-200);
+      margin-top: 48px;
+    }
+    .api-setup .form-input { max-width: 480px; }
+
+    @media (max-width: 768px) {
+      .hero { padding: 36px 24px; }
+      .hero h1 { font-size: 1.75rem; }
+      .hero-stats { gap: 24px; flex-wrap: wrap; }
+      .workflow-steps { flex-direction: column; gap: 24px; }
+      .workflow-step::after { display: none; }
+      .features-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="app">
+    <!-- Sidebar injected by JS -->
+    <div class="main">
+      <header class="header">
+        <div class="flex items-center gap-12">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <span class="header-title">Smile Vision AI</span>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-sm btn-outline" onclick="openModal('apiModal')">API 설정</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Hero -->
+        <section class="hero">
+          <div class="hero-content">
+            <h1>AI로 <span>미래의 미소</span>를<br>지금 보여주세요</h1>
+            <p>환자의 현재 치아를 촬영하면 AI가 라미네이트 시술 후 모습을 실시간으로 시뮬레이션합니다. 설명이 아닌 체험으로 상담 전환율을 극대화하세요.</p>
+            <div class="hero-actions">
+              <a href="simulator.html" class="btn btn-accent btn-lg">AI 시뮬레이터 시작</a>
+              <a href="dashboard.html" class="btn btn-lg" style="background:rgba(255,255,255,0.1); color:#FFF; border:1px solid rgba(255,255,255,0.2);">대시보드 보기</a>
+            </div>
+          </div>
+          <div class="hero-stats">
+            <div>
+              <div class="hero-stat-value">3초</div>
+              <div class="hero-stat-label">AI 분석 소요시간</div>
+            </div>
+            <div>
+              <div class="hero-stat-value">92%</div>
+              <div class="hero-stat-label">시뮬레이션 정확도</div>
+            </div>
+            <div>
+              <div class="hero-stat-value">3.2x</div>
+              <div class="hero-stat-label">상담 전환율 향상</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Workflow -->
+        <section class="workflow-section">
+          <h2>작동 흐름</h2>
+          <div class="workflow-steps">
+            <div class="workflow-step">
+              <div class="step-num">1</div>
+              <div class="step-title">촬영</div>
+              <div class="step-desc">환자 치아 사진 촬영<br>또는 이미지 업로드</div>
+            </div>
+            <div class="workflow-step">
+              <div class="step-num">2</div>
+              <div class="step-title">AI 분석</div>
+              <div class="step-desc">색상, 배열, 대칭<br>자동 점수화</div>
+            </div>
+            <div class="workflow-step">
+              <div class="step-num">3</div>
+              <div class="step-title">시뮬레이션</div>
+              <div class="step-desc">라미네이트 적용 후<br>결과 이미지 생성</div>
+            </div>
+            <div class="workflow-step">
+              <div class="step-num">4</div>
+              <div class="step-title">비교</div>
+              <div class="step-desc">Before/After<br>슬라이드 비교</div>
+            </div>
+            <div class="workflow-step">
+              <div class="step-num">5</div>
+              <div class="step-title">상담</div>
+              <div class="step-desc">AI 분석 리포트 기반<br>즉시 상담 전환</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Features -->
+        <section class="mt-32">
+          <h2>핵심 기능</h2>
+          <div class="features-grid">
+            <a href="simulator.html" class="feature-card">
+              <div class="feature-icon blue">&#x1F4F7;</div>
+              <h3>AI 치아 시뮬레이터</h3>
+              <p>카메라 촬영 또는 이미지 업로드로 라미네이트 시술 후 모습을 AI가 실시간 생성합니다.</p>
+              <span class="feature-tag">핵심 기능</span>
+            </a>
+            <a href="patients.html" class="feature-card">
+              <div class="feature-icon green">&#x1F465;</div>
+              <h3>환자 관리 시스템</h3>
+              <p>환자 정보, 촬영 이력, 상담 기록을 체계적으로 관리하고 추적합니다.</p>
+              <span class="feature-tag">CRM</span>
+            </a>
+            <a href="dashboard.html" class="feature-card">
+              <div class="feature-icon purple">&#x1F4CA;</div>
+              <h3>KPI 대시보드</h3>
+              <p>상담 전환율, 매출, 환자 흐름을 실시간 차트로 모니터링합니다.</p>
+              <span class="feature-tag">Analytics</span>
+            </a>
+            <a href="chatbot.html" class="feature-card">
+              <div class="feature-icon amber">&#x1F4AC;</div>
+              <h3>AI 상담 챗봇</h3>
+              <p>Gemini 기반 치과 전문 AI가 환자 질문에 즉시 답변하고 상담을 지원합니다.</p>
+              <span class="feature-tag">Gemini AI</span>
+            </a>
+            <a href="command-center.html" class="feature-card">
+              <div class="feature-icon rose">&#x1F3AF;</div>
+              <h3>지휘센터</h3>
+              <p>병원 전체 상황을 한 화면에서 실시간 모니터링하는 통합 지휘 시스템입니다.</p>
+              <span class="feature-tag">Command Center</span>
+            </a>
+            <div class="feature-card">
+              <div class="feature-icon cyan">&#x1F9E0;</div>
+              <h3>치아 점수 엔진</h3>
+              <p>AI가 색상, 배열, 대칭, 간격을 분석하여 치아 상태를 100점 기준으로 점수화합니다.</p>
+              <span class="feature-tag">AI Scoring</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- API Setup -->
+        <section class="api-setup" id="apiSetupSection">
+          <h3>Gemini API 설정</h3>
+          <p class="mt-8" style="font-size:0.875rem;">AI 시뮬레이션 및 챗봇 기능을 사용하려면 Google Gemini API 키가 필요합니다.</p>
+          <div class="flex gap-12 items-center mt-16">
+            <input type="password" class="form-input" id="apiKeyInput" placeholder="Gemini API Key 입력">
+            <button class="btn btn-primary" onclick="saveApiKey()">저장</button>
+          </div>
+          <div id="apiStatus" class="mt-8" style="font-size:0.8125rem;"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Key Modal -->
+  <div class="modal-overlay" id="apiModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Gemini API 키 설정</h3>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">API Key</label>
+          <input type="password" class="form-input" id="modalApiKeyInput" placeholder="AIza...">
+        </div>
+        <p style="font-size:0.8125rem; color:var(--text-tertiary);">API 키는 브라우저 로컬 스토리지에만 저장되며 외부로 전송되지 않습니다.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('apiModal')">취소</button>
+        <button class="btn btn-primary" onclick="saveApiKeyFromModal()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    // Inject sidebar
+    document.getElementById('app').insertAdjacentHTML('afterbegin', renderSidebar('index'));
+
+    // API key management
+    function saveApiKey() {
+      const key = document.getElementById('apiKeyInput').value.trim();
+      if (!key) { showToast('API 키를 입력하세요', 'warning'); return; }
+      GeminiAPI.setKey(key);
+      showToast('API 키가 저장되었습니다', 'success');
+      updateApiStatus();
+    }
+
+    function saveApiKeyFromModal() {
+      const key = document.getElementById('modalApiKeyInput').value.trim();
+      if (!key) { showToast('API 키를 입력하세요', 'warning'); return; }
+      GeminiAPI.setKey(key);
+      showToast('API 키가 저장되었습니다', 'success');
+      closeModal('apiModal');
+      updateApiStatus();
+    }
+
+    function updateApiStatus() {
+      const key = GeminiAPI.getKey();
+      const el = document.getElementById('apiStatus');
+      if (key) {
+        el.innerHTML = '<span style="color:var(--success);">&#10003; API 키가 설정되었습니다</span>';
+        document.getElementById('apiKeyInput').value = '••••••••••••';
+        document.getElementById('apiSetupSection').style.borderColor = 'var(--success)';
+      } else {
+        el.innerHTML = '<span style="color:var(--text-tertiary);">API 키가 설정되지 않았습니다</span>';
+      }
+    }
+
+    updateApiStatus();
+  </script>
+</body>
+</html>

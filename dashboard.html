@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CEO 대시보드 — Smile Vision AI</title>
+  <link rel="stylesheet" href="css/common.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .date-range {
+      display: flex;
+      gap: 8px;
+    }
+    .date-btn {
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      background: var(--gray-100);
+      color: var(--text-secondary);
+      transition: all var(--duration) var(--ease);
+    }
+    .date-btn.active, .date-btn:hover { background: var(--primary); color: #FFF; }
+
+    .chart-card { min-height: 320px; }
+    .chart-container { position: relative; height: 280px; }
+
+    .kpi-card-icon {
+      width: 48px; height: 48px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem;
+      margin-bottom: 16px;
+    }
+
+    .conversion-funnel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 8px 0;
+    }
+    .funnel-step {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .funnel-bar {
+      height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #FFF;
+      transition: width 1s var(--ease);
+    }
+    .funnel-label {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      width: 80px;
+      flex-shrink: 0;
+      text-align: right;
+    }
+    .funnel-count {
+      font-size: 0.8125rem;
+      color: var(--text-tertiary);
+      width: 60px;
+      flex-shrink: 0;
+    }
+
+    .recent-table { margin-top: 8px; }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+    .status-dot.active { background: var(--success); }
+    .status-dot.pending { background: var(--warning); }
+    .status-dot.done { background: var(--gray-400); }
+
+    .treatment-pill {
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="app">
+    <div class="main">
+      <header class="header">
+        <div class="flex items-center gap-12">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <span class="header-title">CEO 대시보드</span>
+        </div>
+        <div class="header-actions">
+          <div class="date-range">
+            <button class="date-btn" onclick="setRange(this, 7)">7일</button>
+            <button class="date-btn active" onclick="setRange(this, 30)">30일</button>
+            <button class="date-btn" onclick="setRange(this, 90)">90일</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- KPI Grid -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-card-icon" style="background:var(--primary-bg);">&#x1F465;</div>
+            <div class="kpi-label">오늘 환자 수</div>
+            <div class="kpi-value" id="kpiPatients">42</div>
+            <div class="kpi-change up">&#8593; 12% vs 어제</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card-icon" style="background:#D1FAE5;">&#x1F4B0;</div>
+            <div class="kpi-label">오늘 매출</div>
+            <div class="kpi-value" id="kpiRevenue">3,420만</div>
+            <div class="kpi-change up">&#8593; 18% vs 어제</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card-icon" style="background:#EDE9FE;">&#x1F4C8;</div>
+            <div class="kpi-label">상담 전환율</div>
+            <div class="kpi-value" id="kpiConversion">68%</div>
+            <div class="kpi-change up">&#8593; 8% vs 어제</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card-icon" style="background:#FEF3C7;">&#x1F3AF;</div>
+            <div class="kpi-label">계약률</div>
+            <div class="kpi-value" id="kpiContract">32%</div>
+            <div class="kpi-change up">&#8593; 5% vs 어제</div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid-2 mt-24">
+          <!-- Revenue Chart -->
+          <div class="card chart-card">
+            <div class="card-header">
+              <h3>매출 추이</h3>
+            </div>
+            <div class="card-body">
+              <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Treatment Mix -->
+          <div class="card chart-card">
+            <div class="card-header">
+              <h3>치료 유형별 매출</h3>
+            </div>
+            <div class="card-body">
+              <div class="chart-container">
+                <canvas id="treatmentChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Funnel + Patients -->
+        <div class="grid-2 mt-24">
+          <!-- Conversion Funnel -->
+          <div class="card">
+            <div class="card-header">
+              <h3>상담 전환 퍼널</h3>
+            </div>
+            <div class="card-body">
+              <div class="conversion-funnel" id="funnel">
+                <!-- Filled by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Patient Flow Chart -->
+          <div class="card chart-card">
+            <div class="card-header">
+              <h3>일별 환자 흐름</h3>
+            </div>
+            <div class="card-body">
+              <div class="chart-container">
+                <canvas id="patientChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Patients -->
+        <div class="card mt-24">
+          <div class="card-header flex justify-between items-center">
+            <h3>최근 환자</h3>
+            <a href="patients.html" class="btn btn-sm btn-outline">전체 보기</a>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>환자명</th>
+                    <th>치료유형</th>
+                    <th>치아점수</th>
+                    <th>상태</th>
+                    <th>최근방문</th>
+                  </tr>
+                </thead>
+                <tbody id="recentTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Insights -->
+        <div class="card mt-24">
+          <div class="card-header">
+            <h3>AI 인사이트</h3>
+          </div>
+          <div class="card-body">
+            <div class="grid-3" id="insights">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    document.getElementById('app').insertAdjacentHTML('afterbegin', renderSidebar('dashboard'));
+
+    const data = SampleData;
+
+    // --- KPI Animation ---
+    function animateValue(el, target, suffix = '') {
+      let current = 0;
+      const step = Math.ceil(target / 30);
+      const timer = setInterval(() => {
+        current += step;
+        if (current >= target) { current = target; clearInterval(timer); }
+        el.textContent = current.toLocaleString() + suffix;
+      }, 30);
+    }
+
+    // --- Revenue Chart ---
+    new Chart(document.getElementById('revenueChart'), {
+      type: 'line',
+      data: {
+        labels: data.dailyRevenue.map(d => d.date),
+        datasets: [{
+          label: '매출 (만원)',
+          data: data.dailyRevenue.map(d => d.revenue),
+          borderColor: '#0066FF',
+          backgroundColor: 'rgba(0,102,255,0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 5,
+          pointBackgroundColor: '#0066FF',
+          borderWidth: 2.5,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: (ctx) => ctx.parsed.y.toLocaleString() + '만원' }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(0,0,0,0.04)' },
+            ticks: { callback: v => v.toLocaleString() + '만' }
+          },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // --- Treatment Doughnut ---
+    new Chart(document.getElementById('treatmentChart'), {
+      type: 'doughnut',
+      data: {
+        labels: data.treatmentMix.map(t => t.name),
+        datasets: [{
+          data: data.treatmentMix.map(t => t.value),
+          backgroundColor: data.treatmentMix.map(t => t.color),
+          borderWidth: 0,
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+          legend: { position: 'right', labels: { padding: 16, font: { size: 13, weight: 600 } } },
+          tooltip: {
+            callbacks: { label: (ctx) => ctx.label + ': ' + ctx.parsed + '%' }
+          }
+        }
+      }
+    });
+
+    // --- Patient Flow Chart ---
+    new Chart(document.getElementById('patientChart'), {
+      type: 'bar',
+      data: {
+        labels: data.dailyRevenue.map(d => d.date),
+        datasets: [{
+          label: '환자 수',
+          data: data.dailyRevenue.map(d => d.patients),
+          backgroundColor: 'rgba(0,212,170,0.7)',
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // --- Funnel ---
+    const funnelData = [
+      { label: '방문', count: 156, color: '#0066FF' },
+      { label: 'AI 촬영', count: 112, color: '#4D94FF' },
+      { label: '상담', count: 78, color: '#00D4AA' },
+      { label: '계약', count: 42, color: '#10B981' },
+      { label: '완료', count: 38, color: '#065F46' },
+    ];
+    const maxFunnel = funnelData[0].count;
+    document.getElementById('funnel').innerHTML = funnelData.map(f => `
+      <div class="funnel-step">
+        <div class="funnel-label">${f.label}</div>
+        <div class="funnel-bar" style="width:${(f.count / maxFunnel) * 100}%; background:${f.color};">${f.count}명</div>
+        <div class="funnel-count">${Math.round(f.count / maxFunnel * 100)}%</div>
+      </div>
+    `).join('');
+
+    // --- Recent Patients ---
+    const statusMap = {
+      '상담중': { dot: 'active', badge: 'badge-primary' },
+      '상담대기': { dot: 'pending', badge: 'badge-warning' },
+      '계약완료': { dot: 'active', badge: 'badge-success' },
+      '치료중': { dot: 'active', badge: 'badge-primary' },
+      '치료완료': { dot: 'done', badge: 'badge-success' },
+    };
+    const treatmentColors = {
+      '라미네이트': '#0066FF',
+      '치아미백': '#00D4AA',
+      '임플란트': '#F59E0B',
+      '교정': '#8B5CF6',
+    };
+
+    document.getElementById('recentTable').innerHTML = data.patients.slice(0, 6).map(p => {
+      const s = statusMap[p.status] || { dot: 'pending', badge: 'badge-primary' };
+      const tc = treatmentColors[p.treatment] || '#666';
+      return `<tr>
+        <td><strong>${p.name}</strong></td>
+        <td><span class="treatment-pill" style="background:${tc}15; color:${tc};">${p.treatment}</span></td>
+        <td><strong>${p.score}</strong>/100</td>
+        <td><span class="status-dot ${s.dot}"></span>${p.status}</td>
+        <td>${p.lastVisit}</td>
+      </tr>`;
+    }).join('');
+
+    // --- AI Insights ---
+    const insights = [
+      { icon: '&#x1F4C8;', title: '매출 상승 추세', desc: '지난 7일 매출이 평균 대비 23% 상승했습니다. 라미네이트 상담 증가가 주요 원인입니다.', color: 'var(--success)' },
+      { icon: '&#x1F3AF;', title: '전환율 개선 기회', desc: 'AI 시뮬레이터 사용 환자의 계약률이 비사용 환자 대비 2.8배 높습니다.', color: 'var(--primary)' },
+      { icon: '&#x26A0;', title: '주의: 오전 공백', desc: '오전 10-11시 상담 예약이 30% 비어있습니다. 타겟 마케팅을 추천합니다.', color: 'var(--warning)' },
+    ];
+    document.getElementById('insights').innerHTML = insights.map(i => `
+      <div style="padding:20px; background:var(--gray-50); border-radius:var(--radius-md); border-left:4px solid ${i.color};">
+        <div style="font-size:1.5rem; margin-bottom:8px;">${i.icon}</div>
+        <h4 style="margin-bottom:8px; color:var(--text-primary);">${i.title}</h4>
+        <p style="font-size:0.8125rem;">${i.desc}</p>
+      </div>
+    `).join('');
+
+    // --- Date Range ---
+    function setRange(el, days) {
+      document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      showToast(`${days}일 데이터로 변경됨`, 'info');
+    }
+  </script>
+</body>
+</html>

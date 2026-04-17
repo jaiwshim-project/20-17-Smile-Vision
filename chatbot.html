@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 상담 챗봇 — Smile Vision AI</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .chat-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 24px;
+      height: calc(100vh - var(--header-h) - 64px);
+    }
+
+    /* Knowledge Panel */
+    .knowledge-panel {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .knowledge-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-100);
+      font-weight: 700;
+      font-size: 0.9375rem;
+    }
+    .knowledge-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+    .knowledge-item {
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--duration) var(--ease);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .knowledge-item:hover { background: var(--gray-50); }
+    .knowledge-item.active { background: var(--primary-bg); color: var(--primary); }
+    .knowledge-icon { font-size: 1rem; }
+
+    .quick-prompts {
+      padding: 12px;
+      border-top: 1px solid var(--gray-100);
+    }
+    .quick-prompts h4 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-tertiary);
+      margin-bottom: 8px;
+    }
+    .quick-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      border-radius: var(--radius-sm);
+      background: var(--gray-50);
+      margin-bottom: 6px;
+      transition: all var(--duration) var(--ease);
+    }
+    .quick-btn:hover { background: var(--primary-bg); color: var(--primary); }
+
+    /* Chat Area */
+    .chat-area {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chat-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--gray-100);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chat-header-info { display: flex; align-items: center; gap: 12px; }
+    .chat-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      color: #FFF; font-size: 1.1rem;
+    }
+    .chat-status {
+      font-size: 0.75rem;
+      color: var(--success);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .chat-status::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .msg {
+      max-width: 75%;
+      display: flex;
+      gap: 10px;
+      animation: fadeUp 0.3s var(--ease);
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+    }
+    .msg.bot { align-self: flex-start; }
+    .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+
+    .msg-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.875rem;
+      flex-shrink: 0;
+    }
+    .msg.bot .msg-avatar { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #FFF; }
+    .msg.user .msg-avatar { background: var(--gray-200); }
+
+    .msg-bubble {
+      padding: 14px 18px;
+      border-radius: var(--radius-lg);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    .msg.bot .msg-bubble {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      color: var(--text-primary);
+      border-top-left-radius: 4px;
+    }
+    .msg.user .msg-bubble {
+      background: var(--primary);
+      color: #FFF;
+      border-top-right-radius: 4px;
+    }
+    .msg-time {
+      font-size: 0.6875rem;
+      color: var(--text-disabled);
+      margin-top: 4px;
+    }
+    .msg.user .msg-time { text-align: right; }
+
+    .typing-indicator {
+      display: flex; gap: 4px; padding: 8px 0;
+    }
+    .typing-dot {
+      width: 8px; height: 8px;
+      background: var(--gray-400);
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+
+    /* Input */
+    .chat-input-area {
+      padding: 16px 24px;
+      border-top: 1px solid var(--gray-100);
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .chat-input-wrap {
+      flex: 1;
+      position: relative;
+    }
+    .chat-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+      outline: none;
+      transition: border-color var(--duration) var(--ease);
+      font-family: inherit;
+    }
+    .chat-input:focus { border-color: var(--primary); }
+    .chat-input-actions { display: flex; gap: 4px; margin-top: 4px; }
+    .chat-input-btn {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-tertiary);
+      font-size: 1rem;
+      transition: all var(--duration) var(--ease);
+    }
+    .chat-input-btn:hover { background: var(--gray-100); color: var(--text-primary); }
+
+    .send-btn {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #FFF;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem;
+      transition: all var(--duration) var(--ease);
+      flex-shrink: 0;
+    }
+    .send-btn:hover { background: var(--primary-dark); transform: scale(1.05); }
+    .send-btn:disabled { background: var(--gray-300); cursor: not-allowed; transform: none; }
+
+    @media (max-width: 768px) {
+      .chat-layout { grid-template-columns: 1fr; height: calc(100vh - var(--header-h) - 40px); }
+      .knowledge-panel { display: none; }
+      .msg { max-width: 90%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="app">
+    <div class="main">
+      <header class="header">
+        <div class="flex items-center gap-12">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <span class="header-title">AI 상담 챗봇</span>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-sm btn-outline" onclick="clearChat()">대화 초기화</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="chat-layout">
+          <!-- Knowledge Panel -->
+          <div class="knowledge-panel">
+            <div class="knowledge-header">지식 베이스</div>
+            <div class="knowledge-list">
+              <div class="knowledge-item active">
+                <span class="knowledge-icon">&#x1F9B7;</span> 라미네이트 시술 정보
+              </div>
+              <div class="knowledge-item">
+                <span class="knowledge-icon">&#x2728;</span> 치아미백 가이드
+              </div>
+              <div class="knowledge-item">
+                <span class="knowledge-icon">&#x1F3D7;</span> 임플란트 안내
+              </div>
+              <div class="knowledge-item">
+                <span class="knowledge-icon">&#x1F504;</span> 치아교정 정보
+              </div>
+              <div class="knowledge-item">
+                <span class="knowledge-icon">&#x1F4B0;</span> 가격 / 보험 안내
+              </div>
+              <div class="knowledge-item">
+                <span class="knowledge-icon">&#x1F4CB;</span> 시술 후 관리
+              </div>
+            </div>
+            <div class="quick-prompts">
+              <h4>빠른 질문</h4>
+              <button class="quick-btn" onclick="sendQuick('라미네이트 시술 과정을 알려주세요')">라미네이트 시술 과정</button>
+              <button class="quick-btn" onclick="sendQuick('치아미백과 라미네이트의 차이점은?')">미백 vs 라미네이트</button>
+              <button class="quick-btn" onclick="sendQuick('시술 비용은 얼마인가요?')">시술 비용 안내</button>
+              <button class="quick-btn" onclick="sendQuick('시술 후 주의사항을 알려주세요')">시술 후 주의사항</button>
+            </div>
+          </div>
+
+          <!-- Chat Area -->
+          <div class="chat-area">
+            <div class="chat-header">
+              <div class="chat-header-info">
+                <div class="chat-avatar">&#x1F9B7;</div>
+                <div>
+                  <div style="font-weight:700; font-size:0.9375rem;">Smile AI 상담사</div>
+                  <div class="chat-status">온라인</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+              <!-- Welcome Message -->
+              <div class="msg bot">
+                <div class="msg-avatar">&#x1F9B7;</div>
+                <div>
+                  <div class="msg-bubble">
+                    안녕하세요! Smile Vision AI 상담사입니다.<br><br>
+                    치아 시술에 대한 궁금한 점을 자유롭게 물어보세요. 라미네이트, 치아미백, 임플란트, 교정 등 전문적인 상담을 도와드립니다.<br><br>
+                    왼쪽 '빠른 질문'을 클릭하시면 자주 묻는 질문을 바로 확인할 수 있습니다.
+                  </div>
+                  <div class="msg-time">지금</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-input-area">
+              <div class="chat-input-wrap">
+                <textarea class="chat-input" id="chatInput" placeholder="메시지를 입력하세요..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+                <div class="chat-input-actions">
+                  <button class="chat-input-btn" onclick="document.getElementById('chatFileInput').click()" title="이미지 첨부">&#x1F4CE;</button>
+                  <input type="file" id="chatFileInput" accept="image/*" style="display:none" onchange="attachImage(event)">
+                </div>
+              </div>
+              <button class="send-btn" id="sendBtn" onclick="sendMessage()">&#x27A4;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    document.getElementById('app').insertAdjacentHTML('afterbegin', renderSidebar('chatbot'));
+
+    let chatHistory = [];
+    let attachedImage = null;
+    let isProcessing = false;
+
+    const SYSTEM_PROMPT = `당신은 "Smile Vision AI" 플랫폼의 전문 치과 상담 AI입니다.
+
+역할:
+- 환자의 치과 시술 관련 질문에 전문적이면서도 친절하게 답변
+- 라미네이트, 치아미백, 임플란트, 교정 등 시술 정보 제공
+- 시술 비용, 기간, 주의사항 안내
+- 환자의 불안감을 해소하고 신뢰감 형성
+
+답변 스타일:
+- 한국어로 답변
+- 전문적이면서 쉽게 이해 가능한 설명
+- 구체적인 수치와 기간 포함
+- 핵심을 먼저 말하고 상세 설명 추가
+- 적절한 이모지 사용 가능
+- 치과 이미지가 첨부되면 치아 상태를 분석하여 설명
+
+주요 지식:
+- 라미네이트: 치아 앞면에 얇은 세라믹을 부착하는 시술. 2-3회 방문, 7-14일 완성
+- 치아미백: 과산화수소 기반 미백제로 색상 개선. 1-2회 방문
+- 임플란트: 치아 뿌리 대체 티타늄 고정체. 3-6개월 과정
+- 교정: 교정장치로 치아 이동. 1-2년 소요`;
+
+    function now() {
+      const d = new Date();
+      return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+
+    function addMessage(role, text, image = null) {
+      const container = document.getElementById('chatMessages');
+      const isBot = role === 'bot';
+
+      let content = text.replace(/\n/g, '<br>');
+      if (image) {
+        content = `<img src="${image}" style="max-width:240px; border-radius:8px; margin-bottom:8px;"><br>` + content;
+      }
+
+      const html = `
+        <div class="msg ${isBot ? 'bot' : 'user'}">
+          <div class="msg-avatar">${isBot ? '&#x1F9B7;' : '&#x1F464;'}</div>
+          <div>
+            <div class="msg-bubble">${content}</div>
+            <div class="msg-time">${now()}</div>
+          </div>
+        </div>`;
+      container.insertAdjacentHTML('beforeend', html);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function showTyping() {
+      const container = document.getElementById('chatMessages');
+      const html = `
+        <div class="msg bot" id="typingMsg">
+          <div class="msg-avatar">&#x1F9B7;</div>
+          <div>
+            <div class="msg-bubble">
+              <div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      container.insertAdjacentHTML('beforeend', html);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function removeTyping() {
+      const el = document.getElementById('typingMsg');
+      if (el) el.remove();
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text && !attachedImage) return;
+      if (isProcessing) return;
+
+      isProcessing = true;
+      document.getElementById('sendBtn').disabled = true;
+
+      addMessage('user', text, attachedImage);
+      chatHistory.push({ role: 'user', content: text });
+
+      const imageForApi = attachedImage;
+      input.value = '';
+      attachedImage = null;
+      autoResize(input);
+
+      showTyping();
+
+      try {
+        const apiKey = GeminiAPI.getKey();
+        if (!apiKey) {
+          removeTyping();
+          addMessage('bot', 'Gemini API 키가 설정되지 않았습니다. 홈 페이지에서 API 키를 먼저 설정해주세요.');
+          isProcessing = false;
+          document.getElementById('sendBtn').disabled = false;
+          return;
+        }
+
+        const fullPrompt = SYSTEM_PROMPT + '\n\n이전 대화:\n' +
+          chatHistory.slice(-10).map(m => `${m.role === 'user' ? '환자' : 'AI'}: ${m.content}`).join('\n') +
+          '\n\n환자: ' + text + '\n\nAI:';
+
+        const response = await GeminiAPI.chat(fullPrompt, imageForApi);
+        removeTyping();
+        addMessage('bot', response);
+        chatHistory.push({ role: 'bot', content: response });
+      } catch (err) {
+        removeTyping();
+        // Fallback responses
+        const fallbacks = {
+          '라미네이트': '라미네이트는 치아 앞면에 얇은 세라믹(0.3~0.5mm)을 부착하는 시술입니다.\n\n주요 특징:\n- 2-3회 방문, 약 7-14일 완성\n- 색상, 형태, 배열 동시 개선\n- 자연치아 최소 삭제\n- 유지 기간: 10-15년\n\n비용: 개당 약 50-100만원\n\nAI 시뮬레이터에서 시술 후 모습을 미리 확인해보세요!',
+          '미백': '치아미백은 과산화수소 기반 미백제로 치아 색상을 개선하는 시술입니다.\n\n종류:\n1. 전문가 미백: 1-2회 방문, 즉시 효과\n2. 자가 미백: 2-4주 진행\n\n비용: 20-50만원\n유지: 6개월-2년\n\n라미네이트와 비교하면 형태 변화 없이 색상만 개선합니다.',
+          '비용': '주요 시술 비용 안내:\n\n- 라미네이트: 50-100만원/개\n- 치아미백: 20-50만원\n- 임플란트: 100-200만원/개\n- 교정: 300-600만원\n\n정확한 비용은 진단 후 확인 가능합니다.\nAI 시뮬레이터로 시술 결과를 먼저 확인해보세요!',
+          'default': '좋은 질문입니다! 치과 시술에 대해 더 자세히 안내드리겠습니다.\n\nAI 시뮬레이터에서 현재 치아 상태를 촬영하시면, 시술 후 예상 모습을 바로 확인할 수 있습니다.\n\n궁금한 점이 있으시면 언제든 물어보세요!'
+        };
+
+        let reply = fallbacks['default'];
+        for (const [key, val] of Object.entries(fallbacks)) {
+          if (text.includes(key)) { reply = val; break; }
+        }
+        addMessage('bot', reply);
+        chatHistory.push({ role: 'bot', content: reply });
+      }
+
+      isProcessing = false;
+      document.getElementById('sendBtn').disabled = false;
+    }
+
+    function sendQuick(text) {
+      document.getElementById('chatInput').value = text;
+      sendMessage();
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    function attachImage(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        attachedImage = ev.target.result;
+        showToast('이미지가 첨부되었습니다', 'success');
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+
+    function clearChat() {
+      chatHistory = [];
+      document.getElementById('chatMessages').innerHTML = '';
+      addMessage('bot', '대화가 초기화되었습니다. 새로운 질문을 해주세요!');
+    }
+  </script>
+</body>
+</html>

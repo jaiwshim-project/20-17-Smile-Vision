@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 치아 시뮬레이터 — Smile Vision AI</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    /* --- Upload Area --- */
+    .upload-zone {
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--radius-xl);
+      padding: 60px 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--duration) var(--ease);
+      background: var(--surface);
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--primary);
+      background: var(--primary-bg);
+    }
+    .upload-zone-icon { font-size: 3rem; margin-bottom: 16px; }
+    .upload-zone h3 { margin-bottom: 8px; }
+    .upload-zone p { font-size: 0.875rem; color: var(--text-tertiary); }
+    .upload-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+
+    /* --- Camera Preview --- */
+    .camera-container {
+      position: relative;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: #000;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .camera-container video {
+      width: 100%;
+      display: block;
+      border-radius: var(--radius-lg);
+    }
+    .camera-guide {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70%; height: 50%;
+      border: 2px solid rgba(0,212,170,0.5);
+      border-radius: var(--radius-xl);
+      pointer-events: none;
+    }
+    .camera-guide-text {
+      position: absolute;
+      bottom: -32px; left: 50%;
+      transform: translateX(-50%);
+      color: var(--accent);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .camera-controls {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .capture-btn {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #FFF;
+      font-size: 1.5rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(0,102,255,0.3);
+      transition: all var(--duration) var(--ease);
+    }
+    .capture-btn:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(0,102,255,0.4); }
+
+    /* --- Compare Slider --- */
+    .compare-wrapper {
+      position: relative;
+      max-width: 800px;
+      margin: 0 auto;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      background: #000;
+      user-select: none;
+      touch-action: none;
+    }
+    .compare-wrapper img {
+      width: 100%;
+      display: block;
+    }
+    .compare-before {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      overflow: hidden;
+      width: 50%;
+    }
+    .compare-before img {
+      width: 800px;
+      max-width: none;
+    }
+    .compare-handle {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 50%;
+      width: 4px;
+      background: #FFF;
+      cursor: ew-resize;
+      z-index: 10;
+      transform: translateX(-50%);
+    }
+    .compare-handle::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: #FFF;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+    .compare-handle::after {
+      content: '\2194';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.25rem;
+      color: var(--gray-700);
+      z-index: 1;
+    }
+    .compare-label {
+      position: absolute;
+      top: 16px;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      z-index: 5;
+    }
+    .compare-label.before {
+      left: 16px;
+      background: rgba(0,0,0,0.6);
+      color: #FFF;
+    }
+    .compare-label.after {
+      right: 16px;
+      background: rgba(0,212,170,0.9);
+      color: #FFF;
+    }
+
+    /* --- Analysis Panel --- */
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .score-card {
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+    }
+    .score-ring {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+      position: relative;
+    }
+    .score-ring svg { position: absolute; top: 0; left: 0; }
+    .score-ring .score-value { font-size: 1.5rem; font-weight: 800; z-index: 1; }
+    .score-label { font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); }
+    .score-change { font-size: 0.75rem; color: var(--success); font-weight: 600; margin-top: 4px; }
+
+    .analysis-text {
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-top: 16px;
+    }
+    .analysis-text h4 { margin-bottom: 12px; }
+    .analysis-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 0;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    .analysis-item-icon { color: var(--accent); font-weight: 700; flex-shrink: 0; }
+
+    /* --- Options --- */
+    .style-options {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .style-option {
+      padding: 10px 20px;
+      border: 2px solid var(--gray-200);
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--duration) var(--ease);
+    }
+    .style-option:hover { border-color: var(--primary); color: var(--primary); }
+    .style-option.active { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); }
+
+    /* --- Loading --- */
+    .analyze-loading {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .analyze-loading .spinner { margin: 0 auto 20px; }
+    .loading-text { color: var(--text-secondary); font-size: 0.9375rem; }
+    .loading-sub { color: var(--text-tertiary); font-size: 0.8125rem; margin-top: 8px; }
+
+    .progress-bar {
+      width: 300px; height: 6px;
+      background: var(--gray-200);
+      border-radius: 3px;
+      margin: 16px auto 0;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+
+    /* --- Action Bar --- */
+    .action-bar {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    @media (max-width: 768px) {
+      .upload-zone { padding: 40px 20px; }
+      .compare-wrapper { border-radius: var(--radius-md); }
+      .analysis-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="app">
+    <div class="main">
+      <header class="header">
+        <div class="flex items-center gap-12">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <span class="header-title">AI 치아 시뮬레이터</span>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-sm btn-outline" onclick="resetSimulator()">새로 시작</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- STEP 1: Upload / Camera -->
+        <div id="stepUpload">
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-zone-icon">&#x1F4F7;</div>
+            <h3>치아 사진을 업로드하세요</h3>
+            <p>이미지를 드래그하거나 클릭하여 업로드, 또는 카메라로 촬영하세요</p>
+            <p style="margin-top:8px; font-size:0.75rem; color:var(--text-disabled);">JPG, PNG, WebP (최대 10MB)</p>
+            <div class="upload-actions">
+              <button class="btn btn-primary" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
+                &#x1F4C1; 파일 선택
+              </button>
+              <button class="btn btn-accent" onclick="event.stopPropagation(); startCamera()">
+                &#x1F4F7; 카메라 촬영
+              </button>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
+          </div>
+
+          <!-- Camera Mode -->
+          <div id="cameraMode" class="hidden mt-24">
+            <div class="camera-container">
+              <video id="cameraVideo" autoplay playsinline></video>
+              <div class="camera-guide">
+                <div class="camera-guide-text">치아가 잘 보이도록 위치시켜 주세요</div>
+              </div>
+            </div>
+            <div class="camera-controls">
+              <button class="btn btn-secondary" onclick="stopCamera()">취소</button>
+              <button class="capture-btn" onclick="capturePhoto()">&#x1F4F8;</button>
+              <button class="btn btn-secondary" onclick="switchCamera()">&#x1F504;</button>
+            </div>
+          </div>
+
+          <!-- Preview -->
+          <div id="previewMode" class="hidden mt-24">
+            <div class="card">
+              <div class="card-body" style="text-align:center;">
+                <img id="previewImage" style="max-height:400px; border-radius:var(--radius-md); margin:0 auto;">
+                <div class="flex justify-center gap-12 mt-16">
+                  <button class="btn btn-secondary" onclick="resetSimulator()">다시 선택</button>
+                  <button class="btn btn-primary btn-lg" onclick="startAnalysis()">
+                    &#x1F9E0; AI 분석 시작
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: Loading -->
+        <div id="stepLoading" class="hidden">
+          <div class="card">
+            <div class="card-body">
+              <div class="analyze-loading">
+                <div class="spinner"></div>
+                <div class="loading-text" id="loadingText">AI가 치아를 분석하고 있습니다...</div>
+                <div class="loading-sub" id="loadingSub">치아 영역 감지 중</div>
+                <div class="progress-bar">
+                  <div class="progress-bar-fill" id="progressFill"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Results -->
+        <div id="stepResult" class="hidden">
+          <!-- Compare Slider -->
+          <div class="card">
+            <div class="card-header flex justify-between items-center">
+              <h3>Before / After 비교</h3>
+              <div class="style-options" id="styleOptions">
+                <button class="style-option active" data-style="natural" onclick="selectStyle(this)">자연형</button>
+                <button class="style-option" data-style="white" onclick="selectStyle(this)">화이트형</button>
+                <button class="style-option" data-style="premium" onclick="selectStyle(this)">프리미엄형</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="compare-wrapper" id="compareWrapper">
+                <img id="afterImage" src="" alt="After">
+                <div class="compare-before" id="compareBefore">
+                  <img id="beforeImage" src="" alt="Before">
+                </div>
+                <div class="compare-handle" id="compareHandle"></div>
+                <span class="compare-label before">BEFORE</span>
+                <span class="compare-label after">AFTER</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Analysis -->
+          <div class="card mt-24">
+            <div class="card-header">
+              <h3>AI 분석 결과</h3>
+            </div>
+            <div class="card-body">
+              <div class="analysis-grid" id="analysisScores">
+                <!-- Filled by JS -->
+              </div>
+              <div class="analysis-text" id="analysisText">
+                <!-- Filled by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="action-bar">
+            <button class="btn btn-primary btn-lg" onclick="openSaveModal()">&#x1F4BE; 고객 정보 + 결과 저장</button>
+            <button class="btn btn-accent btn-lg" onclick="goToConsult()">&#x1F4C5; 상담 진행</button>
+            <button class="btn btn-secondary" onclick="resetSimulator()">&#x1F504; 새로 촬영</button>
+            <button class="btn btn-outline" onclick="downloadResult()">&#x1F4E5; 이미지 다운로드</button>
+          </div>
+
+          <!-- 저장 상태 표시 -->
+          <div id="saveStatus" class="hidden" style="margin-top:16px; padding:16px; border-radius:var(--radius-md); text-align:center;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 고객 정보 + 결과 저장 모달 -->
+  <div class="modal-overlay" id="saveModal">
+    <div class="modal" style="max-width:520px;">
+      <div class="modal-header">
+        <h3>&#x1F4BE; 고객 정보 및 시뮬레이션 저장</h3>
+      </div>
+      <div class="modal-body">
+        <!-- Supabase 연결 상태 -->
+        <div id="saveSupabaseStatus" style="padding:12px 16px; border-radius:var(--radius-md); margin-bottom:16px;"></div>
+
+        <!-- 기존 고객 선택 또는 신규 등록 -->
+        <div class="form-group">
+          <label class="form-label">고객 선택</label>
+          <select class="form-input" id="savePatientSelect" onchange="toggleNewPatient()">
+            <option value="new">+ 신규 고객 등록</option>
+          </select>
+        </div>
+
+        <!-- 신규 고객 폼 -->
+        <div id="newPatientFields">
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">이름 *</label>
+              <input type="text" class="form-input" id="saveName" placeholder="홍길동">
+            </div>
+            <div class="form-group">
+              <label class="form-label">연락처</label>
+              <input type="tel" class="form-input" id="savePhone" placeholder="010-0000-0000">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">나이</label>
+              <input type="number" class="form-input" id="saveAge" placeholder="30">
+            </div>
+            <div class="form-group">
+              <label class="form-label">성별</label>
+              <select class="form-input" id="saveGender">
+                <option value="">선택</option>
+                <option value="남">남</option>
+                <option value="여">여</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">메모</label>
+            <input type="text" class="form-input" id="saveMemo" placeholder="특이사항, 요청 등">
+          </div>
+        </div>
+
+        <!-- 저장 항목 요약 -->
+        <div style="margin-top:16px; padding:16px; background:var(--gray-50); border-radius:var(--radius-md);">
+          <p style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); margin-bottom:8px;">저장 항목</p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <span class="badge badge-primary">Before 이미지</span>
+            <span class="badge badge-success">After 이미지 (3종)</span>
+            <span class="badge" style="background:#EDE9FE; color:#7C3AED;">AI 분석 점수</span>
+            <span class="badge badge-warning">분석 리포트</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('saveModal')">취소</button>
+        <button class="btn btn-primary" id="saveSubmitBtn" onclick="submitSave()">&#x1F4BE; 저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase 설정 모달 -->
+  <div class="modal-overlay" id="supabaseModal">
+    <div class="modal" style="max-width:520px;">
+      <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h3>&#x1F5C4; Supabase 연결 설정</h3>
+        <button class="btn btn-sm btn-secondary" onclick="closeModal('supabaseModal')" style="font-size:1rem; padding:4px 10px;">&#x2715;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Supabase Project URL</label>
+          <input type="text" class="form-input" id="supabaseUrlInput" placeholder="https://xxxx.supabase.co">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Supabase Anon Key</label>
+          <input type="password" class="form-input" id="supabaseKeyInput" placeholder="eyJhbGciOi...">
+        </div>
+        <div id="supabaseStatus" style="margin-top:8px;"></div>
+        <div style="margin-top:16px; padding:12px; background:var(--gray-50); border-radius:var(--radius-sm);">
+          <p style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">설정 방법</p>
+          <ol style="font-size:0.75rem; color:var(--text-tertiary); padding-left:16px; line-height:1.8;">
+            <li>Supabase Dashboard 접속</li>
+            <li>Settings > API에서 URL과 anon key 복사</li>
+            <li>SQL Editor에서 <code>sql/schema.sql</code> 실행</li>
+            <li>Storage에서 <code>smile-vision</code> 버킷 생성 (Public)</li>
+          </ol>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('supabaseModal')">취소</button>
+        <button class="btn btn-primary" onclick="saveSupabaseConfig()">연결 테스트 + 저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MediaPipe Face Mesh -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"></script>
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <script src="js/common.js?v=2"></script>
+  <script src="js/supabase.js?v=3"></script>
+  <script src="js/scoring-engine.js?v=2"></script>
+  <script>
+    document.getElementById('app').insertAdjacentHTML('afterbegin', renderSidebar('simulator'));
+
+    let currentImage = null;
+    let cameraStream = null;
+    let facingMode = 'user';
+    let analysisResult = null;
+    let laminateImages = {}; // { natural, white, premium }
+
+    // --- Drag & Drop ---
+    const uploadZone = document.getElementById('uploadZone');
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) handleFile(file);
+    });
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) handleFile(file);
+    }
+
+    function handleFile(file) {
+      if (file.size > 10 * 1024 * 1024) { showToast('10MB 이하 이미지만 가능합니다', 'warning'); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentImage = e.target.result;
+        showPreview(currentImage);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function showPreview(src) {
+      document.getElementById('previewImage').src = src;
+      document.getElementById('previewMode').classList.remove('hidden');
+      document.getElementById('uploadZone').classList.add('hidden');
+      document.getElementById('cameraMode').classList.add('hidden');
+    }
+
+    // --- Camera ---
+    async function startCamera() {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        const video = document.getElementById('cameraVideo');
+        video.srcObject = cameraStream;
+        document.getElementById('cameraMode').classList.remove('hidden');
+        document.getElementById('uploadZone').classList.add('hidden');
+      } catch (err) {
+        showToast('카메라에 접근할 수 없습니다', 'error');
+      }
+    }
+
+    function stopCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+      }
+      document.getElementById('cameraMode').classList.add('hidden');
+      document.getElementById('uploadZone').classList.remove('hidden');
+    }
+
+    function switchCamera() {
+      facingMode = facingMode === 'user' ? 'environment' : 'user';
+      stopCamera();
+      startCamera();
+    }
+
+    function capturePhoto() {
+      const video = document.getElementById('cameraVideo');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      currentImage = canvas.toDataURL('image/jpeg', 0.9);
+      stopCamera();
+      showPreview(currentImage);
+    }
+
+    // --- Analysis ---
+    async function startAnalysis() {
+      if (!currentImage) return;
+
+      const apiKey = GeminiAPI.getKey();
+      if (!apiKey) {
+        showToast('Gemini API 키를 먼저 설정하세요 (홈 > API 설정)', 'warning');
+        return;
+      }
+
+      showStep('stepLoading');
+      animateProgress();
+
+      try {
+        const prompt = (typeof ScoringEngine !== 'undefined') ? ScoringEngine.generateAnalysisPrompt() : `당신은 치과 전문 AI 분석가입니다. 이 치아 사진을 분석해주세요.
+반드시 아래 JSON 형식으로만 응답하세요:
+{"scores":{"whiteness":0,"alignment":0,"symmetry":0,"spacing":0,"shape":0,"gumline":0},"findings":["발견1","발견2"],"recommendation":"추천","urgency":"medium","primary_concern":"핵심 문제"}`;
+
+        const response = await GeminiAPI.chat(prompt, currentImage);
+        let jsonStr = response;
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        if (jsonMatch) jsonStr = jsonMatch[0];
+
+        const parsed = JSON.parse(jsonStr);
+
+        // ScoringEngine으로 종합 점수 및 예상 점수 계산
+        const SE = (typeof ScoringEngine !== 'undefined') ? ScoringEngine : null;
+        const totalScore = SE ? SE.calculateTotal(parsed.scores) : Math.round(Object.values(parsed.scores).reduce((a,b)=>a+b,0)/Object.keys(parsed.scores).length);
+        const predicted = SE ? SE.predictAfterScores(parsed.scores) : { total: Math.min(98, totalScore + 30) };
+        const recommendations = SE ? SE.getRecommendation(parsed.scores) : [];
+
+        analysisResult = {
+          scores: parsed.scores,
+          details: parsed.details || {},
+          total_score: totalScore,
+          predicted_score: predicted.total,
+          predicted_scores: predicted,
+          findings: parsed.findings || [],
+          recommendation: recommendations[0]?.treatment + ' — ' + recommendations[0]?.reason,
+          recommendations,
+          urgency: parsed.urgency || 'medium',
+          primary_concern: parsed.primary_concern || '',
+        };
+        await generateLaminateImages();
+        showResults();
+      } catch (err) {
+        console.error(err);
+        // Fallback to demo data
+        analysisResult = {
+          scores: { whiteness: 48, alignment: 52, symmetry: 58, spacing: 45, shape: 55, gumline: 62 },
+          findings: [
+            '치아 색상이 자연치 특유의 노란 톤을 보입니다 (VITA A3 추정)',
+            '상악 전치부에 미세한 비대칭이 관찰됩니다',
+            '치아 간 간격이 불균일하며 정렬 개선이 필요합니다'
+          ],
+          urgency: 'medium',
+          primary_concern: '전반적 황변 및 배열 불균일로 라미네이트 시술 추천'
+        };
+        // ScoringEngine으로 종합 점수 계산
+        const fb = analysisResult;
+        const SE2 = (typeof ScoringEngine !== 'undefined') ? ScoringEngine : null;
+        fb.total_score = SE2 ? SE2.calculateTotal(fb.scores) : 52;
+        fb.predicted_scores = SE2 ? SE2.predictAfterScores(fb.scores) : { total: 82 };
+        fb.predicted_score = fb.predicted_scores.total || 82;
+        fb.recommendations = SE2 ? SE2.getRecommendation(fb.scores) : [];
+        fb.recommendation = fb.recommendations[0] ? (fb.recommendations[0].treatment + ' — ' + fb.recommendations[0].reason) : '라미네이트 시술 추천';
+
+        await generateLaminateImages();
+        showResults();
+        showToast('데모 모드로 분석 결과를 표시합니다', 'warning');
+      }
+    }
+
+    function animateProgress() {
+      const fill = document.getElementById('progressFill');
+      const textEl = document.getElementById('loadingSub');
+      const steps = [
+        { pct: 15, text: '치아 영역 감지 중...' },
+        { pct: 30, text: '색상 및 형태 분석 중...' },
+        { pct: 50, text: 'AI 라미네이트 이미지 생성 중...' },
+        { pct: 75, text: '자연형 / 화이트형 / 프리미엄형 시뮬레이션...' },
+        { pct: 90, text: 'Before/After 비교 준비 중...' },
+      ];
+      steps.forEach((s, i) => {
+        setTimeout(() => {
+          fill.style.width = s.pct + '%';
+          textEl.textContent = s.text;
+        }, i * 800);
+      });
+    }
+
+    // ================================================================
+    // Laminate Engine v3 — 4-Stage Pipeline
+    // Face Detection → Teeth Segmentation → AI Enhancement → Blending
+    // ================================================================
+
+    // ---------- MediaPipe Face Mesh ----------
+    let faceMeshInstance = null;
+    let mediaPipeReady = false;
+
+    async function initMediaPipe() {
+      if (mediaPipeReady) return true;
+      if (typeof FaceMesh === 'undefined') {
+        console.warn('MediaPipe Face Mesh CDN 로드 실패');
+        return false;
+      }
+      try {
+        faceMeshInstance = new FaceMesh({
+          locateFile: (file) =>
+            `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}`
+        });
+        faceMeshInstance.setOptions({
+          maxNumFaces: 1,
+          refineLandmarks: true,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5,
+        });
+        await new Promise((resolve, reject) => {
+          faceMeshInstance.onResults(() => {}); // dummy handler
+          // 빈 이미지로 웜업
+          const c = document.createElement('canvas');
+          c.width = 10; c.height = 10;
+          faceMeshInstance.onResults(() => { mediaPipeReady = true; resolve(); });
+          faceMeshInstance.send({ image: c }).catch(reject);
+        });
+        return true;
+      } catch (e) {
+        console.warn('MediaPipe 초기화 실패:', e.message);
+        return false;
+      }
+    }
+
+    // MediaPipe로 치아 영역 탐지 → 마스크 반환
+    async function detectTeethMask(imageElement) {
+      if (!faceMeshInstance) return null;
+
+      return new Promise((resolve) => {
+        faceMeshInstance.onResults((results) => {
+          if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
+            resolve(null);
+            return;
+          }
+          const landmarks = results.multiFaceLandmarks[0];
+          const W = imageElement.naturalWidth || imageElement.width;
+          const H = imageElement.naturalHeight || imageElement.height;
+
+          // 내부 입술 랜드마크 → 치아 노출 영역
+          // 상부 내입술 (좌→우)
+          const upperInner = [78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 308];
+          // 하부 내입술 (우→좌)
+          const lowerInner = [308, 324, 318, 402, 317, 14, 87, 178, 88, 95, 78];
+
+          // 치아 보이는 영역 = 상부 + 하부 내입술 사이 폴리곤
+          const teethPoly = [
+            ...upperInner.map(i => [landmarks[i].x * W, landmarks[i].y * H]),
+            ...lowerInner.map(i => [landmarks[i].x * W, landmarks[i].y * H]),
+          ];
+
+          // Canvas 마스크 생성
+          const maskCanvas = document.createElement('canvas');
+          maskCanvas.width = W; maskCanvas.height = H;
+          const mctx = maskCanvas.getContext('2d');
+          mctx.fillStyle = '#fff';
+          mctx.beginPath();
+          mctx.moveTo(teethPoly[0][0], teethPoly[0][1]);
+          for (let i = 1; i < teethPoly.length; i++) {
+            mctx.lineTo(teethPoly[i][0], teethPoly[i][1]);
+          }
+          mctx.closePath();
+          mctx.fill();
+
+          // Uint8Array 마스크 변환
+          const maskData = mctx.getImageData(0, 0, W, H).data;
+          const mask = new Uint8Array(W * H);
+          for (let i = 0; i < W * H; i++) {
+            mask[i] = maskData[i * 4] > 128 ? 1 : 0;
+          }
+
+          // 입 내부의 어두운 영역(구강)을 마스크에서 제거
+          // → 실제 치아 픽셀만 남김
+          const imgCanvas = document.createElement('canvas');
+          imgCanvas.width = W; imgCanvas.height = H;
+          const ictx = imgCanvas.getContext('2d');
+          ictx.drawImage(imageElement, 0, 0);
+          const imgData = ictx.getImageData(0, 0, W, H).data;
+
+          for (let i = 0; i < W * H; i++) {
+            if (!mask[i]) continue;
+            const pi = i * 4;
+            const r = imgData[pi], g = imgData[pi+1], b = imgData[pi+2];
+            const lum = (r * 0.299 + g * 0.587 + b * 0.114);
+            // 매우 어두운 픽셀 = 구강 내부 → 제거
+            if (lum < 80) mask[i] = 0;
+            // 매우 붉은 픽셀 = 잇몸/입술 안쪽 → 제거
+            const [h, s, l] = rgbToHsl(r, g, b);
+            if ((h < 0.06 || h > 0.92) && s > 0.25 && l < 0.55) mask[i] = 0;
+          }
+
+          resolve({ mask, W, H, landmarks, teethPoly });
+        });
+
+        faceMeshInstance.send({ image: imageElement });
+      });
+    }
+
+    // ---------- 라미네이트 스타일 ----------
+    const LAMINATE_STYLES = {
+      natural: {
+        targetColor: [242, 238, 228],  // 따뜻한 자연 화이트
+        strength: 0.88,                 // 변환 강도
+        glossIntensity: 0.3,            // 광택 강도
+        smoothing: 0.75,                // 표면 스무딩
+        edgeBlur: 6,                    // 가장자리 블러 반경
+      },
+      white: {
+        targetColor: [252, 250, 248],  // 밝은 순백 (연예인 스타일)
+        strength: 0.96,
+        glossIntensity: 0.5,
+        smoothing: 0.9,
+        edgeBlur: 5,
+      },
+      premium: {
+        targetColor: [248, 244, 236],  // 고급 아이보리
+        strength: 0.92,
+        glossIntensity: 0.38,
+        smoothing: 0.82,
+        edgeBlur: 6,
+      },
+    };
+
+    async function generateLaminateImages() {
+      const apiKey = GeminiAPI.getKey();
+
+      // === STAGE 1: Face Detection + Teeth Segmentation (MediaPipe) ===
+      let teethData = null;
+      try {
+        const ready = await initMediaPipe();
+        if (ready) {
+          const tempImg = new Image();
+          await new Promise((res, rej) => { tempImg.onload = res; tempImg.onerror = rej; tempImg.src = currentImage; });
+          teethData = await detectTeethMask(tempImg);
+          if (teethData) console.log('MediaPipe: 치아 마스크 생성 완료');
+        }
+      } catch (e) {
+        console.warn('MediaPipe 감지 실패:', e.message);
+      }
+
+      // === STAGE 2+3: AI Enhancement (Gemini) or Canvas Fallback ===
+      if (apiKey) {
+        try {
+          const prompts = {
+            natural: `Edit this photo: apply natural-looking dental laminate veneers on the visible teeth only.
+The teeth should become:
+- Bright with a warm natural white tone (not overly artificial)
+- Perfectly aligned and symmetrical
+- Smooth edges with realistic enamel texture
+- Natural glossy finish
+Keep EVERYTHING else exactly the same: same face, same skin, same expression, same lighting, same background.
+ONLY modify the teeth. The result should look like a professional "after" photo from a real dental clinic.`,
+            white: `Edit this photo: apply bright white Hollywood-style dental laminate veneers on the visible teeth only.
+The teeth should become:
+- Very bright pure white color
+- Perfectly straight and symmetrical alignment
+- Flawless smooth surface with high gloss
+Keep EVERYTHING else exactly the same: same face, skin, expression, lighting, background.
+ONLY modify the teeth area. Celebrity-level bright white smile.`,
+            premium: `Edit this photo: apply premium dental laminate veneers on the visible teeth only.
+The teeth should become:
+- Refined ivory-white with subtle warm undertone
+- Perfectly aligned with natural proportions (golden ratio)
+- Smooth with a premium glossy enamel finish
+- Natural translucency at the edges
+Keep EVERYTHING else exactly the same: same face, skin, expression, lighting, background.
+ONLY modify the teeth. Premium natural result.`
+          };
+
+          const results = await Promise.allSettled(
+            Object.entries(prompts).map(async ([name, prompt]) => {
+              const img = await GeminiAPI.generateImage(prompt, currentImage);
+              return { name, img };
+            })
+          );
+
+          let aiSuccess = false;
+          for (const result of results) {
+            if (result.status === 'fulfilled') {
+              laminateImages[result.value.name] = result.value.img;
+              aiSuccess = true;
+            }
+          }
+
+          if (aiSuccess) {
+            const fb = laminateImages.natural || laminateImages.white || laminateImages.premium;
+            for (const n of ['natural', 'white', 'premium']) {
+              if (!laminateImages[n]) laminateImages[n] = fb;
+            }
+            return; // AI 이미지 생성 성공
+          }
+        } catch (err) {
+          console.warn('Gemini 이미지 생성 실패:', err.message);
+        }
+      }
+
+      // === STAGE 2+3 Fallback: Canvas 기반 로컬 처리 ===
+      await generateLaminateCanvas(teethData);
+    }
+
+    async function generateLaminateCanvas(teethData) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const W = img.naturalWidth;
+          const H = img.naturalHeight;
+
+          for (const [name, style] of Object.entries(LAMINATE_STYLES)) {
+            const canvas = document.createElement('canvas');
+            canvas.width = W; canvas.height = H;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            let mask;
+            if (teethData?.mask) {
+              // MediaPipe 마스크 사용 (정밀)
+              mask = teethData.mask;
+            } else {
+              // 색상 기반 자동 감지 (폴백)
+              mask = detectTeethByColor(ctx, W, H);
+            }
+
+            renderLaminate(ctx, W, H, mask, style);
+            laminateImages[name] = canvas.toDataURL('image/jpeg', 0.93);
+          }
+          resolve();
+        };
+        img.src = currentImage;
+      });
+    }
+
+    // ---- 치아 감지 공통 유틸 ----
+
+    // RGB → HSL
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      const l = (max + min) / 2;
+      if (max === min) return [0, 0, l];
+      const d = max - min;
+      const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      let h;
+      if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+      else if (max === g) h = ((b - r) / d + 2) / 6;
+      else h = ((r - g) / d + 4) / 6;
+      return [h, s, l];
+    }
+
+    // 치아 픽셀 판별 (실제 사진 기준)
+    // 피부와 치아를 구분하는 핵심: 주변 컨텍스트 (입술 내부의 밝은 영역만)
+    // 단독 픽셀 판별은 1차 필터, 이후 컨텍스트 필터로 정제
+    function isToothPixel(r, g, b, surroundingDark) {
+      const [h, s, l] = rgbToHsl(r, g, b);
+
+      // 입술/잇몸 (붉은색, 채도 높음) 제외
+      if ((h < 0.05 || h > 0.92) && s > 0.2) return false;
+      // 어두운 구강 내부 제외
+      if (l < 0.35) return false;
+      // 매우 높은 채도 제외
+      if (s > 0.45) return false;
+
+      // 핵심 조건: 주변에 어두운 픽셀(입술/구강)이 있어야 치아로 판별
+      // → 피부 한가운데의 밝은 영역은 제외됨
+      if (!surroundingDark) return false;
+
+      // 치아 색상 범위
+      if (l >= 0.4 && s < 0.4) {
+        // 노란/갈색 치아
+        if (h >= 0.03 && h <= 0.18) return true;
+        // 거의 무채색 밝은 치아
+        if (s < 0.12 && l > 0.55) return true;
+        // 화이트 치아
+        if (l > 0.7 && s < 0.18) return true;
+      }
+
+      return false;
+    }
+
+    // 모폴로지 연산 (erosion → dilation → dilation 추가로 영역 확장)
+    function morphClean(mask, W, H) {
+      const r1 = 2; // erosion radius
+      const r2 = 3; // dilation radius
+
+      // Erosion - 노이즈 제거
+      const eroded = new Uint8Array(W * H);
+      for (let y = r1; y < H - r1; y++) {
+        for (let x = r1; x < W - r1; x++) {
+          let ok = true;
+          outer: for (let dy = -r1; dy <= r1; dy++) {
+            for (let dx = -r1; dx <= r1; dx++) {
+              if (!mask[(y + dy) * W + (x + dx)]) { ok = false; break outer; }
+            }
+          }
+          eroded[y * W + x] = ok ? 1 : 0;
+        }
+      }
+
+      // Dilation - 영역 복원 + 약간 확장
+      const dilated = new Uint8Array(W * H);
+      for (let y = r2; y < H - r2; y++) {
+        for (let x = r2; x < W - r2; x++) {
+          let found = false;
+          outer2: for (let dy = -r2; dy <= r2; dy++) {
+            for (let dx = -r2; dx <= r2; dx++) {
+              if (eroded[(y + dy) * W + (x + dx)]) { found = true; break outer2; }
+            }
+          }
+          dilated[y * W + x] = found ? 1 : 0;
+        }
+      }
+
+      return dilated;
+    }
+
+    // 가우시안 블러 기반 가장자리 소프트닝
+    function computeSoftEdge(mask, W, H, radius) {
+      const softMask = new Float32Array(W * H);
+      // 가로 패스
+      const temp = new Float32Array(W * H);
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          let sum = 0, count = 0;
+          for (let dx = -radius; dx <= radius; dx++) {
+            const nx = x + dx;
+            if (nx >= 0 && nx < W) { sum += mask[y * W + nx]; count++; }
+          }
+          temp[y * W + x] = sum / count;
+        }
+      }
+      // 세로 패스
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          let sum = 0, count = 0;
+          for (let dy = -radius; dy <= radius; dy++) {
+            const ny = y + dy;
+            if (ny >= 0 && ny < H) { sum += temp[ny * W + x]; count++; }
+          }
+          softMask[y * W + x] = sum / count;
+        }
+      }
+      return softMask;
+    }
+
+    // ---- 색상 기반 치아 감지 (MediaPipe 실패 시 폴백) ----
+    function detectTeethByColor(ctx, W, H) {
+      const imageData = ctx.getImageData(0, 0, W, H);
+      const data = imageData.data;
+
+      // === PHASE 1: 입 영역(mouth region) 감지 ===
+      // 입술 = 붉은 계열 + 중간 채도 + 중간 밝기
+      // 구강 내부 = 매우 어두움
+      const mouthMap = new Uint8Array(W * H); // 입 관련 영역
+      const scanTop = Math.floor(H * 0.35);
+      const scanBottom = Math.floor(H * 0.9);
+      const scanLeft = Math.floor(W * 0.1);
+      const scanRight = Math.floor(W * 0.9);
+
+      for (let y = scanTop; y < scanBottom; y++) {
+        for (let x = scanLeft; x < scanRight; x++) {
+          const i = (y * W + x) * 4;
+          const r = data[i], g = data[i + 1], b = data[i + 2];
+          const [h, s, l] = rgbToHsl(r, g, b);
+
+          // 입술: 붉은~분홍 계열
+          const isLip = ((h < 0.08 || h > 0.9) && s > 0.1 && l > 0.2 && l < 0.65)
+                     || (r > g + 15 && r > b + 20 && l > 0.2 && l < 0.6);
+          // 구강 내부: 매우 어두움
+          const isDarkMouth = l < 0.2;
+          // 잇몸: 분홍~붉은 계열, 중간 밝기
+          const isGum = (h < 0.05 || h > 0.92) && s > 0.15 && l > 0.3 && l < 0.55;
+
+          if (isLip || isDarkMouth || isGum) mouthMap[y * W + x] = 1;
+        }
+      }
+
+      // 입 영역을 큰 타원형으로 연결 (dilation)
+      const mouthExpanded = new Uint8Array(W * H);
+      const mouthR = Math.max(12, Math.floor(Math.min(W, H) * 0.04));
+      for (let y = scanTop; y < scanBottom; y++) {
+        for (let x = scanLeft; x < scanRight; x++) {
+          if (!mouthMap[y * W + x]) continue;
+          for (let dy = -mouthR; dy <= mouthR; dy++) {
+            for (let dx = -mouthR; dx <= mouthR; dx++) {
+              if (dx * dx + dy * dy > mouthR * mouthR) continue;
+              const ny = y + dy, nx = x + dx;
+              if (ny >= 0 && ny < H && nx >= 0 && nx < W) {
+                mouthExpanded[ny * W + nx] = 1;
+              }
+            }
+          }
+        }
+      }
+
+      // === PHASE 2: 입 영역 바운딩 박스 계산 ===
+      let mTop = H, mBottom = 0, mLeft = W, mRight = 0;
+      let mouthPixelCount = 0;
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          if (mouthExpanded[y * W + x]) {
+            mTop = Math.min(mTop, y); mBottom = Math.max(mBottom, y);
+            mLeft = Math.min(mLeft, x); mRight = Math.max(mRight, x);
+            mouthPixelCount++;
+          }
+        }
+      }
+
+      // 입 영역이 너무 작으면 전체 이미지 중앙 하단을 사용
+      if (mouthPixelCount < W * H * 0.002) {
+        mTop = Math.floor(H * 0.45); mBottom = Math.floor(H * 0.75);
+        mLeft = Math.floor(W * 0.2); mRight = Math.floor(W * 0.8);
+      }
+
+      // === PHASE 3: 입 영역 안에서 치아 픽셀 감지 ===
+      // 핵심: 입 영역 내에서 상대적으로 밝은 픽셀 = 치아
+      // 입 영역 내 밝기 분포 계산
+      const mouthLums = [];
+      for (let y = mTop; y <= mBottom; y++) {
+        for (let x = mLeft; x <= mRight; x++) {
+          if (!mouthExpanded[y * W + x]) continue;
+          const i = (y * W + x) * 4;
+          const lum = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+          mouthLums.push(lum);
+        }
+      }
+      mouthLums.sort((a, b) => a - b);
+
+      // 입 영역 내 밝기 중간값 기준 — 이보다 확실히 밝은 영역 = 치아
+      const medianLum = mouthLums[Math.floor(mouthLums.length * 0.5)] || 128;
+      const teethThreshold = Math.max(medianLum + 25, 120); // 최소 120
+
+      const rawMask = new Uint8Array(W * H);
+      for (let y = mTop; y <= mBottom; y++) {
+        for (let x = mLeft; x <= mRight; x++) {
+          if (!mouthExpanded[y * W + x]) continue;
+          const i = (y * W + x) * 4;
+          const r = data[i], g = data[i + 1], b = data[i + 2];
+          const lum = r * 0.299 + g * 0.587 + b * 0.114;
+          const [h, s, l] = rgbToHsl(r, g, b);
+
+          // 치아 조건:
+          // 1) 입 영역 내 상대적 밝기 기준 초과
+          // 2) 입술/잇몸 색(붉은 계열 고채도) 제외
+          // 3) 구강 내부 (매우 어두움) 제외
+          const isLipOrGum = ((h < 0.06 || h > 0.92) && s > 0.2 && l < 0.6);
+          const isDark = l < 0.25;
+
+          if (lum >= teethThreshold && !isLipOrGum && !isDark && s < 0.45) {
+            rawMask[y * W + x] = 1;
+          }
+        }
+      }
+
+      // === PHASE 4: 정제 ===
+      const cleanMask = morphClean(rawMask, W, H);
+      const filtered = filterSmallRegions(cleanMask, W, H, Math.floor(W * H * 0.0005));
+
+      // === PHASE 5: 마스크 반환 ===
+      return filtered;
+    }
+
+    // 작은 연결 영역 제거
+    function filterSmallRegions(mask, W, H, minSize) {
+      const labels = new Int32Array(W * H);
+      let labelId = 0;
+      const sizes = [0];
+
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          if (mask[y * W + x] && !labels[y * W + x]) {
+            labelId++;
+            let size = 0;
+            const stack = [[x, y]];
+            while (stack.length) {
+              const [cx, cy] = stack.pop();
+              const idx = cy * W + cx;
+              if (cx < 0 || cx >= W || cy < 0 || cy >= H) continue;
+              if (!mask[idx] || labels[idx]) continue;
+              labels[idx] = labelId;
+              size++;
+              stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
+            }
+            sizes[labelId] = size;
+          }
+        }
+      }
+
+      const result = new Uint8Array(W * H);
+      for (let i = 0; i < W * H; i++) {
+        if (labels[i] && sizes[labels[i]] >= minSize) result[i] = 1;
+      }
+      return result;
+    }
+
+    // ---- 공통 라미네이트 렌더링 ----
+    function renderLaminate(ctx, W, H, mask, style) {
+      const { targetColor, strength, glossIntensity, smoothing, edgeBlur } = style;
+      const [tR, tG, tB] = targetColor;
+
+      // 소프트 에지 마스크 생성
+      const softMask = computeSoftEdge(mask, W, H, edgeBlur);
+
+      const imageData = ctx.getImageData(0, 0, W, H);
+      const data = imageData.data;
+
+      // 마스크 영역의 바운딩 박스 계산 (광택용)
+      let minY = H, maxY = 0, minX = W, maxX = 0;
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          if (softMask[y * W + x] > 0.1) {
+            minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+            minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+          }
+        }
+      }
+      const teethH = maxY - minY || 1;
+      const teethW = maxX - minX || 1;
+      const teethCx = (minX + maxX) / 2;
+
+      // 주변 영역 평균 색상 계산 (블렌딩 참조용)
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          const idx = y * W + x;
+          const alpha = softMask[idx]; // 0~1 소프트 마스크
+          if (alpha < 0.01) continue;
+
+          const pi = idx * 4;
+          const origR = data[pi], origG = data[pi + 1], origB = data[pi + 2];
+
+          // === STEP 1: 색상 중화 (노란/갈색 완전 제거) ===
+          const yellowBias = Math.max(0, origR - origB) * 0.9;
+          const brownBias = Math.max(0, (origR + origG) / 2 - origB - 20) * 0.4;
+          const neutralR = origR - yellowBias * 0.5 - brownBias * 0.3;
+          const neutralG = origG - yellowBias * 0.2 - brownBias * 0.15;
+          const neutralB = origB + yellowBias * 0.4 + brownBias * 0.2;
+
+          // === STEP 2: 라미네이트 타겟 색상으로 변환 ===
+          const s = strength * alpha;
+          let newR = neutralR * (1 - s) + tR * s;
+          let newG = neutralG * (1 - s) + tG * s;
+          let newB = neutralB * (1 - s) + tB * s;
+
+          // === STEP 3: 균일화 (smoothing) ===
+          // 원본의 명암 변화를 줄여서 균일한 색감
+          const origLum = (origR * 0.299 + origG * 0.587 + origB * 0.114) / 255;
+          const targetLum = (tR * 0.299 + tG * 0.587 + tB * 0.114) / 255;
+          const lumDiff = (origLum - targetLum) * smoothing * alpha;
+          newR -= lumDiff * 30;
+          newG -= lumDiff * 30;
+          newB -= lumDiff * 25;
+
+          // === STEP 4: 광택 효과 ===
+          const relY = (y - minY) / teethH;  // 0=상단, 1=하단
+          const relX = (x - teethCx) / (teethW / 2); // -1~1 좌우
+
+          // 상단 1/3에 수평 광택 밴드
+          const topGloss = Math.max(0, 1 - relY * 3) * glossIntensity * alpha;
+          // 중앙 포인트 하이라이트
+          const centerGloss = Math.exp(-(relX * relX * 2 + (relY - 0.3) * (relY - 0.3) * 8))
+                             * glossIntensity * 0.6 * alpha;
+          // 하단 미세 반사
+          const bottomGloss = Math.max(0, relY - 0.8) * glossIntensity * 0.3 * alpha;
+
+          const totalGloss = (topGloss + centerGloss + bottomGloss);
+          newR += totalGloss * 60;
+          newG += totalGloss * 58;
+          newB += totalGloss * 55;
+
+          // === STEP 5: 밝기 부스트 ===
+          const brightnessBoost = strength * alpha * 35;
+          newR += brightnessBoost;
+          newG += brightnessBoost;
+          newB += brightnessBoost;
+
+          // 클램핑
+          data[pi]     = Math.min(255, Math.max(0, Math.round(newR)));
+          data[pi + 1] = Math.min(255, Math.max(0, Math.round(newG)));
+          data[pi + 2] = Math.min(255, Math.max(0, Math.round(newB)));
+        }
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    function getPathBounds(pts) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const p of pts) {
+        minX = Math.min(minX, p[0]); minY = Math.min(minY, p[1]);
+        maxX = Math.max(maxX, p[0]); maxY = Math.max(maxY, p[1]);
+      }
+      return { left: minX, top: minY, right: maxX, bottom: maxY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
+    }
+
+    // --- Results ---
+    function showResults() {
+      const r = analysisResult;
+
+      // Set compare images — Before: 원본, After: 라미네이트 적용
+      document.getElementById('beforeImage').src = currentImage;
+      const activeStyle = document.querySelector('.style-option.active')?.dataset.style || 'natural';
+      document.getElementById('afterImage').src = laminateImages[activeStyle] || laminateImages.natural || currentImage;
+      document.getElementById('afterImage').style.filter = 'none';
+
+      // Resize before image to match wrapper
+      setTimeout(() => {
+        const wrapper = document.getElementById('compareWrapper');
+        const imgs = wrapper.querySelectorAll('img');
+        imgs.forEach(img => img.style.width = wrapper.offsetWidth + 'px');
+      }, 100);
+
+      // Scores — 6가지 항목 + 등급
+      const scoreColors = { whiteness:'#0066FF', alignment:'#00D4AA', symmetry:'#8B5CF6', spacing:'#F59E0B', shape:'#EC4899', gumline:'#06B6D4' };
+      const scoreIcons = { whiteness:'🎨', alignment:'📐', symmetry:'⚖️', spacing:'↔️', shape:'🦷', gumline:'🏔️' };
+      const SE3 = (typeof ScoringEngine !== 'undefined') ? ScoringEngine : null;
+      const predicted = r.predicted_scores || (SE3 ? SE3.predictAfterScores(r.scores) : {});
+      const totalGrade = SE3 ? SE3.getGrade(r.total_score) : { grade: 'B', label: '보통', color: '#F59E0B', bg: '#FEF3C7' };
+
+      let scoresHtml = '';
+      for (const [key, val] of Object.entries(r.scores)) {
+        if (SE3 && !SE3.criteria[key]) continue;
+        if (!SE3 && !['whiteness','alignment','symmetry','spacing','shape','gumline'].includes(key)) continue;
+        const pred = predicted[key] || val;
+        const grade = SE3 ? SE3.getGrade(val) : totalGrade;
+        const pct = val / 100;
+        const circumference = 2 * Math.PI * 34;
+        const dashoffset = circumference * (1 - pct);
+        const detail = r.details?.[key] || '';
+        scoresHtml += `
+          <div class="score-card" title="${detail}">
+            <div class="score-ring">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="34" fill="none" stroke="var(--gray-200)" stroke-width="6"/>
+                <circle cx="40" cy="40" r="34" fill="none" stroke="${scoreColors[key]}" stroke-width="6"
+                  stroke-dasharray="${circumference}" stroke-dashoffset="${dashoffset}"
+                  stroke-linecap="round" transform="rotate(-90 40 40)"
+                  style="transition: stroke-dashoffset 1s ease"/>
+              </svg>
+              <span class="score-value">${val}</span>
+            </div>
+            <div class="score-label">${scoreIcons[key]} ${SE3?.criteria[key]?.label || key}</div>
+            <div style="margin-top:4px;">
+              <span style="display:inline-block;padding:2px 8px;border-radius:99px;font-size:0.6875rem;font-weight:700;background:${grade.bg};color:${grade.color};">${grade.grade} ${grade.label}</span>
+            </div>
+            <div class="score-change">&#8593; 시술 후 ${pred}점</div>
+          </div>`;
+      }
+      document.getElementById('analysisScores').innerHTML = scoresHtml;
+
+      // Analysis text — 종합 점수 + 등급 + 발견사항 + 추천 치료
+      let findingsHtml = '';
+      (r.findings || []).forEach(f => {
+        findingsHtml += `<div class="analysis-item"><span class="analysis-item-icon">&#x25B6;</span>${f}</div>`;
+      });
+
+      let recsHtml = '';
+      (r.recommendations || []).forEach(rec => {
+        const pColor = rec.priority === 1 ? 'var(--danger)' : rec.priority === 2 ? 'var(--warning)' : 'var(--primary)';
+        recsHtml += `<div style="padding:10px 14px; background:var(--gray-50); border-radius:var(--radius-sm); border-left:3px solid ${pColor}; margin-bottom:8px;">
+          <div style="font-size:0.875rem; font-weight:700;">${rec.treatment}</div>
+          <div style="font-size:0.8125rem; color:var(--text-tertiary); margin-top:2px;">${rec.reason} — ${rec.impact}</div>
+        </div>`;
+      });
+
+      document.getElementById('analysisText').innerHTML = `
+        <div style="display:flex; gap:20px; margin-bottom:20px; flex-wrap:wrap; align-items:center;">
+          <div style="padding:20px 28px; background:${totalGrade.bg}; border-radius:var(--radius-md); text-align:center; min-width:100px;">
+            <div style="font-size:2.5rem; font-weight:800; color:${totalGrade.color};">${totalGrade.grade}</div>
+            <div style="font-size:0.75rem; color:var(--text-tertiary);">종합 등급</div>
+          </div>
+          <div style="padding:16px 24px; background:var(--primary-bg); border-radius:var(--radius-md); text-align:center;">
+            <div style="font-size:2rem; font-weight:800; color:var(--primary);">${r.total_score}점</div>
+            <div style="font-size:0.75rem; color:var(--text-tertiary);">현재 점수</div>
+          </div>
+          <div style="padding:16px 24px; background:#D1FAE5; border-radius:var(--radius-md); text-align:center;">
+            <div style="font-size:2rem; font-weight:800; color:#065F46;">${r.predicted_score}점</div>
+            <div style="font-size:0.75rem; color:var(--text-tertiary);">시술 후 예상</div>
+          </div>
+          <div style="padding:16px 24px; background:#FEF3C7; border-radius:var(--radius-md); text-align:center;">
+            <div style="font-size:2rem; font-weight:800; color:#92400E;">+${r.predicted_score - r.total_score}</div>
+            <div style="font-size:0.75rem; color:var(--text-tertiary);">개선 점수</div>
+          </div>
+        </div>
+        ${r.primary_concern ? `<div style="padding:12px 16px; background:#FEE2E2; border-radius:var(--radius-sm); margin-bottom:16px; font-size:0.875rem; font-weight:600; color:#991B1B;">&#x26A0; ${r.primary_concern}</div>` : ''}
+        <h4 style="margin-bottom:8px;">발견사항</h4>
+        ${findingsHtml}
+        ${recsHtml ? `<h4 style="margin:16px 0 8px;">추천 치료</h4>${recsHtml}` : ''}
+      `;
+
+      showStep('stepResult');
+      initCompareSlider();
+    }
+
+    // --- Compare Slider ---
+    function initCompareSlider() {
+      const wrapper = document.getElementById('compareWrapper');
+      const handle = document.getElementById('compareHandle');
+      const before = document.getElementById('compareBefore');
+      let isDragging = false;
+
+      function updateSlider(x) {
+        const rect = wrapper.getBoundingClientRect();
+        let pct = ((x - rect.left) / rect.width) * 100;
+        pct = Math.max(0, Math.min(100, pct));
+        before.style.width = pct + '%';
+        handle.style.left = pct + '%';
+      }
+
+      handle.addEventListener('mousedown', () => isDragging = true);
+      wrapper.addEventListener('mousedown', (e) => { isDragging = true; updateSlider(e.clientX); });
+      document.addEventListener('mousemove', (e) => { if (isDragging) updateSlider(e.clientX); });
+      document.addEventListener('mouseup', () => isDragging = false);
+
+      // Touch support
+      handle.addEventListener('touchstart', () => isDragging = true);
+      wrapper.addEventListener('touchstart', (e) => { isDragging = true; updateSlider(e.touches[0].clientX); });
+      document.addEventListener('touchmove', (e) => { if (isDragging) updateSlider(e.touches[0].clientX); });
+      document.addEventListener('touchend', () => isDragging = false);
+    }
+
+    // --- Style Options ---
+    function selectStyle(el) {
+      document.querySelectorAll('.style-option').forEach(o => o.classList.remove('active'));
+      el.classList.add('active');
+
+      const style = el.dataset.style;
+      const afterImg = document.getElementById('afterImage');
+      afterImg.style.filter = 'none';
+
+      if (laminateImages[style]) {
+        afterImg.src = laminateImages[style];
+      }
+
+      // Resize
+      setTimeout(() => {
+        const wrapper = document.getElementById('compareWrapper');
+        const imgs = wrapper.querySelectorAll('img');
+        imgs.forEach(img => img.style.width = wrapper.offsetWidth + 'px');
+      }, 50);
+    }
+
+    // --- Navigation ---
+    function showStep(stepId) {
+      ['stepUpload', 'stepLoading', 'stepResult'].forEach(id => {
+        document.getElementById(id).classList.toggle('hidden', id !== stepId);
+      });
+    }
+
+    function resetSimulator() {
+      currentImage = null;
+      analysisResult = null;
+      document.getElementById('previewMode').classList.add('hidden');
+      document.getElementById('uploadZone').classList.remove('hidden');
+      document.getElementById('fileInput').value = '';
+      showStep('stepUpload');
+      stopCamera();
+    }
+
+    // --- Actions ---
+    let savedPatientId = null; // 현재 세션에서 저장된 고객 ID
+
+    function openSaveModal() {
+      if (!analysisResult) return;
+
+      // Supabase 자동 초기화 시도
+      if (!SupabaseDB.isReady()) SupabaseDB.init();
+
+      const statusEl = document.getElementById('saveSupabaseStatus');
+      if (SupabaseDB.isReady()) {
+        statusEl.style.background = '#D1FAE5';
+        statusEl.innerHTML = '<span style="font-size:0.8125rem; color:#065F46; font-weight:600;">&#x2705; Supabase 연결됨 — 데이터가 DB에 저장됩니다</span>';
+      } else {
+        statusEl.style.background = '#FEE2E2';
+        statusEl.innerHTML = '<span style="font-size:0.8125rem; color:#991B1B; font-weight:600;">&#x274C; Supabase 미연결 — 사이드바에서 DB를 먼저 연결해주세요</span>';
+      }
+
+      // 기존 고객 목록 로드
+      loadPatientSelect();
+
+      openModal('saveModal');
+    }
+
+    async function loadPatientSelect() {
+      const sel = document.getElementById('savePatientSelect');
+      sel.innerHTML = '<option value="new">+ 신규 고객 등록</option>';
+
+      if (!SupabaseDB.isReady()) return;
+
+      try {
+        const patients = await SupabaseDB.getPatients({ limit: 100 });
+        patients.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = `${p.name}${p.phone ? ' (' + p.phone + ')' : ''}`;
+          sel.appendChild(opt);
+        });
+      } catch (e) {
+        console.warn('고객 목록 로드 실패:', e.message);
+      }
+    }
+
+    function toggleNewPatient() {
+      const isNew = document.getElementById('savePatientSelect').value === 'new';
+      document.getElementById('newPatientFields').style.display = isNew ? 'block' : 'none';
+    }
+
+    async function submitSave() {
+      const btn = document.getElementById('saveSubmitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width:18px;height:18px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px;"></span> 저장 중...';
+
+      const statusEl = document.getElementById('saveStatus');
+      let currentStep = '';
+
+      try {
+        // Supabase 연결 확인 + 자동 초기화
+        currentStep = 'Supabase 연결 확인';
+        if (!SupabaseDB.isReady()) {
+          const initOk = SupabaseDB.init();
+          if (!initOk) throw new Error('Supabase 연결 실패. 사이드바에서 DB를 연결해주세요.');
+        }
+
+        const selectVal = document.getElementById('savePatientSelect').value;
+        let patientId = null;
+
+        // 1) 고객 생성 또는 기존 고객 선택
+        if (selectVal === 'new') {
+          currentStep = '고객 등록';
+          const name = document.getElementById('saveName').value.trim();
+          if (!name) { showToast('고객 이름을 입력하세요', 'warning'); resetSaveBtn(); return; }
+
+          const patient = await SupabaseDB.createPatient({
+            name,
+            phone: document.getElementById('savePhone').value.trim(),
+            age: parseInt(document.getElementById('saveAge').value) || null,
+            gender: document.getElementById('saveGender').value || null,
+            memo: document.getElementById('saveMemo').value.trim(),
+          });
+          patientId = patient.id;
+        } else {
+          patientId = selectVal;
+        }
+
+        // 2) 시뮬레이션 저장 (점수 + 분석 결과 + 이미지 시도)
+        currentStep = '시뮬레이션 결과 저장';
+        const activeStyle = document.querySelector('.style-option.active')?.dataset.style || 'natural';
+        const sim = await SupabaseDB.saveSimulation({
+          patientId,
+          beforeImage: currentImage,
+          afterImages: laminateImages,
+          scores: {
+            whiteness: analysisResult.scores.whiteness || 0,
+            alignment: analysisResult.scores.alignment || 0,
+            symmetry: analysisResult.scores.symmetry || 0,
+            spacing: analysisResult.scores.spacing || 0,
+            shape: analysisResult.scores.shape || 0,
+            gumline: analysisResult.scores.gumline || 0,
+            total: analysisResult.total_score || 0,
+            predicted: analysisResult.predicted_score || 0,
+          },
+          findings: analysisResult.findings || [],
+          recommendation: analysisResult.recommendation || '',
+          selectedStyle: activeStyle,
+        });
+
+        savedPatientId = patientId;
+
+        statusEl.className = '';
+        statusEl.style.background = '#D1FAE5';
+        statusEl.style.color = '#065F46';
+        statusEl.innerHTML = '&#x2705; Supabase에 저장 완료!';
+        statusEl.classList.remove('hidden');
+
+        closeModal('saveModal');
+        showToast('Supabase에 저장 완료!', 'success');
+      } catch (err) {
+        console.error('저장 실패 [' + currentStep + ']:', err);
+        const errMsg = err.message || '알 수 없는 오류';
+
+        statusEl.className = '';
+        statusEl.style.background = '#FEE2E2';
+        statusEl.style.color = '#991B1B';
+        statusEl.innerHTML = '&#x274C; 저장 실패 [' + currentStep + ']: ' + errMsg;
+        statusEl.classList.remove('hidden');
+
+        showToast('저장 실패: ' + errMsg, 'error');
+      }
+
+      resetSaveBtn();
+    }
+
+    function resetSaveBtn() {
+      const btn = document.getElementById('saveSubmitBtn');
+      btn.disabled = false;
+      btn.innerHTML = '&#x1F4BE; 저장';
+    }
+
+    // --- Supabase 설정 ---
+    function saveSupabaseConfig() {
+      const url = document.getElementById('supabaseUrlInput').value.trim();
+      const key = document.getElementById('supabaseKeyInput').value.trim();
+      if (!url || !key) { showToast('URL과 Key를 모두 입력하세요', 'warning'); return; }
+
+      SupabaseDB.setConfig(url, key);
+
+      // 연결 테스트
+      SupabaseDB.getPatientCount()
+        .then(count => {
+          document.getElementById('supabaseStatus').innerHTML =
+            `<span style="color:var(--success); font-weight:600;">&#x2713; 연결 성공! (환자 ${count}명)</span>`;
+          showToast('Supabase 연결 성공!', 'success');
+          closeModal('supabaseModal');
+        })
+        .catch(err => {
+          document.getElementById('supabaseStatus').innerHTML =
+            `<span style="color:var(--danger); font-weight:600;">&#x274C; 연결 실패: ${err.message}</span>`;
+        });
+    }
+
+    function goToConsult() {
+      showToast('상담 페이지로 이동합니다', 'info');
+      setTimeout(() => window.location.href = 'chatbot.html', 500);
+    }
+
+    function downloadResult() {
+      const activeStyle = document.querySelector('.style-option.active')?.dataset.style || 'natural';
+      const afterSrc = laminateImages[activeStyle] || laminateImages.natural || currentImage;
+
+      const beforeImg = new Image();
+      const afterImg = new Image();
+      let loaded = 0;
+
+      function onBothLoaded() {
+        loaded++;
+        if (loaded < 2) return;
+
+        const W = beforeImg.naturalWidth;
+        const H = beforeImg.naturalHeight;
+        const canvas = document.createElement('canvas');
+        canvas.width = W * 2;
+        canvas.height = H;
+        const ctx = canvas.getContext('2d');
+
+        ctx.drawImage(beforeImg, 0, 0, W, H);
+        ctx.drawImage(afterImg, W, 0, W, H);
+
+        // Labels
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(0, 0, 120, 36);
+        ctx.fillRect(W, 0, 100, 36);
+        ctx.fillStyle = '#FFF';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('BEFORE', 12, 24);
+        ctx.fillStyle = '#00D4AA';
+        ctx.fillText('AFTER', W + 12, 24);
+
+        const link = document.createElement('a');
+        link.download = 'smile-vision-result.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('이미지가 다운로드되었습니다', 'success');
+      }
+
+      beforeImg.onload = onBothLoaded;
+      afterImg.onload = onBothLoaded;
+      beforeImg.src = currentImage;
+      afterImg.src = afterSrc;
+    }
+  </script>
+</body>
+</html>

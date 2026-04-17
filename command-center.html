@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>지휘센터 — Smile Vision AI</title>
+  <link rel="stylesheet" href="css/common.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    .cc-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr 340px;
+      grid-template-rows: auto 1fr;
+      gap: 16px;
+      height: calc(100vh - var(--header-h) - 64px);
+    }
+
+    /* Top Bar KPIs */
+    .cc-top {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 12px;
+    }
+    .cc-kpi {
+      flex: 1;
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      border: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .cc-kpi-icon {
+      width: 44px; height: 44px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem;
+    }
+    .cc-kpi-val { font-size: 1.5rem; font-weight: 800; }
+    .cc-kpi-label { font-size: 0.75rem; color: var(--text-tertiary); }
+    .cc-kpi-change { font-size: 0.75rem; font-weight: 600; }
+    .up { color: var(--success); }
+    .down { color: var(--danger); }
+
+    /* Left Panel - Patient Queue */
+    .cc-left {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .panel-title {
+      padding: 16px 20px;
+      font-weight: 700;
+      font-size: 0.9375rem;
+      border-bottom: 1px solid var(--gray-100);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .live-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      display: inline-block;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .queue-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .queue-item {
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: all var(--duration) var(--ease);
+      border-left: 3px solid transparent;
+    }
+    .queue-item:hover { background: var(--gray-50); }
+    .queue-item.active { background: var(--primary-bg); border-left-color: var(--primary); }
+    .queue-item.urgent { border-left-color: var(--danger); }
+    .queue-item.waiting { border-left-color: var(--warning); }
+    .queue-item.in-progress { border-left-color: var(--success); }
+
+    .queue-top { display: flex; justify-content: space-between; align-items: center; }
+    .queue-name { font-weight: 700; font-size: 0.875rem; }
+    .queue-time { font-size: 0.6875rem; color: var(--text-tertiary); }
+    .queue-meta { font-size: 0.75rem; color: var(--text-tertiary); margin-top: 4px; display: flex; gap: 12px; }
+    .queue-status-badge {
+      font-size: 0.6875rem; font-weight: 700;
+      padding: 2px 8px; border-radius: var(--radius-full);
+    }
+
+    /* Center - Main View */
+    .cc-center {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .cc-center-body {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .patient-spotlight {
+      text-align: center;
+      padding: 24px 0;
+    }
+    .spotlight-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      color: #FFF;
+    }
+    .spotlight-name { font-size: 1.25rem; font-weight: 800; }
+    .spotlight-info { font-size: 0.8125rem; color: var(--text-tertiary); margin-top: 4px; }
+
+    .spotlight-scores {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .spot-score {
+      text-align: center;
+      padding: 16px 8px;
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+    }
+    .spot-score-val { font-size: 1.5rem; font-weight: 800; }
+    .spot-score-label { font-size: 0.6875rem; color: var(--text-tertiary); margin-top: 4px; }
+
+    .ai-recommendation {
+      margin-top: 24px;
+      padding: 20px;
+      background: linear-gradient(135deg, #EBF3FF, #D1FAE5);
+      border-radius: var(--radius-md);
+    }
+    .ai-rec-header {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 700; font-size: 0.9375rem; margin-bottom: 12px;
+    }
+    .ai-rec-items { display: flex; flex-direction: column; gap: 8px; }
+    .ai-rec-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 0.8125rem; color: var(--text-secondary);
+    }
+
+    .center-charts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .mini-chart {
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .mini-chart h4 { font-size: 0.8125rem; margin-bottom: 12px; }
+    .mini-chart canvas { height: 140px !important; }
+
+    /* Right Panel - Activity Feed */
+    .cc-right {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .activity-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 16px;
+    }
+    .activity-item {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--gray-100);
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .activity-item:last-child { border: none; }
+    .activity-icon {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.875rem;
+      flex-shrink: 0;
+    }
+    .activity-text { font-size: 0.8125rem; color: var(--text-secondary); }
+    .activity-text strong { color: var(--text-primary); }
+    .activity-time { font-size: 0.6875rem; color: var(--text-disabled); margin-top: 4px; }
+
+    .revenue-live {
+      padding: 16px 20px;
+      border-top: 1px solid var(--gray-100);
+      background: var(--gray-50);
+    }
+    .revenue-live-label { font-size: 0.6875rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; }
+    .revenue-live-val { font-size: 1.75rem; font-weight: 800; color: var(--success); }
+    .revenue-live-target { font-size: 0.75rem; color: var(--text-tertiary); margin-top: 4px; }
+    .revenue-progress {
+      width: 100%; height: 6px;
+      background: var(--gray-200);
+      border-radius: 3px;
+      margin-top: 8px; overflow: hidden;
+    }
+    .revenue-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success), var(--accent));
+      border-radius: 3px;
+      transition: width 1s ease;
+    }
+
+    @media (max-width: 1200px) {
+      .cc-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        height: auto;
+      }
+      .cc-top { flex-wrap: wrap; }
+      .cc-kpi { min-width: 200px; }
+      .cc-left, .cc-center, .cc-right { min-height: 400px; }
+    }
+    @media (max-width: 768px) {
+      .cc-top { flex-direction: column; }
+      .cc-kpi { min-width: auto; }
+      .spotlight-scores { grid-template-columns: repeat(2, 1fr); }
+      .center-charts { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="app">
+    <div class="main">
+      <header class="header">
+        <div class="flex items-center gap-12">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <span class="header-title">&#x1F3AF; 지휘센터</span>
+          <span class="badge badge-success" style="margin-left:8px;"><span class="live-dot" style="margin-right:4px;"></span> LIVE</span>
+        </div>
+        <div class="header-actions">
+          <span style="font-size:0.8125rem; color:var(--text-tertiary);" id="clockDisplay"></span>
+        </div>
+      </header>
+
+      <div class="content" style="padding:20px;">
+        <div class="cc-layout">
+          <!-- Top KPIs -->
+          <div class="cc-top">
+            <div class="cc-kpi">
+              <div class="cc-kpi-icon" style="background:var(--primary-bg);">&#x1F465;</div>
+              <div>
+                <div class="cc-kpi-val" id="livePatients">16</div>
+                <div class="cc-kpi-label">현재 방문 환자</div>
+                <div class="cc-kpi-change up">&#8593; 3 vs 어제</div>
+              </div>
+            </div>
+            <div class="cc-kpi">
+              <div class="cc-kpi-icon" style="background:#D1FAE5;">&#x1F4F7;</div>
+              <div>
+                <div class="cc-kpi-val">8</div>
+                <div class="cc-kpi-label">AI 촬영 완료</div>
+                <div class="cc-kpi-change up">&#8593; 2 vs 어제</div>
+              </div>
+            </div>
+            <div class="cc-kpi">
+              <div class="cc-kpi-icon" style="background:#FEF3C7;">&#x1F4AC;</div>
+              <div>
+                <div class="cc-kpi-val">5</div>
+                <div class="cc-kpi-label">상담 진행 중</div>
+                <div class="cc-kpi-change up">&#8593; 1</div>
+              </div>
+            </div>
+            <div class="cc-kpi">
+              <div class="cc-kpi-icon" style="background:#EDE9FE;">&#x2705;</div>
+              <div>
+                <div class="cc-kpi-val">3</div>
+                <div class="cc-kpi-label">오늘 계약</div>
+                <div class="cc-kpi-change up">&#8593; 1 vs 어제</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Left: Patient Queue -->
+          <div class="cc-left">
+            <div class="panel-title">
+              환자 대기열 <span class="live-dot"></span>
+            </div>
+            <div class="queue-list" id="queueList">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+
+          <!-- Center: Spotlight -->
+          <div class="cc-center">
+            <div class="panel-title">환자 상세</div>
+            <div class="cc-center-body" id="centerBody">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+
+          <!-- Right: Activity Feed -->
+          <div class="cc-right">
+            <div class="panel-title">실시간 활동</div>
+            <div class="activity-list" id="activityList">
+              <!-- Filled by JS -->
+            </div>
+            <div class="revenue-live">
+              <div class="revenue-live-label">오늘 누적 매출</div>
+              <div class="revenue-live-val" id="liveRevenue">2,840만</div>
+              <div class="revenue-live-target">목표: 4,000만원</div>
+              <div class="revenue-progress">
+                <div class="revenue-progress-fill" id="revenueBar" style="width:71%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    document.getElementById('app').insertAdjacentHTML('afterbegin', renderSidebar('command'));
+
+    // --- Clock ---
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clockDisplay').textContent =
+        `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // --- Queue Data ---
+    const queue = [
+      { name: '최유나', age: 25, gender: '여', status: '상담대기', treatment: '교정', time: '14:00', score: 63, cls: 'waiting', scores: { w: 68, a: 55, s: 72, sp: 57 } },
+      { name: '오민혁', age: 45, gender: '남', status: 'AI 촬영 중', treatment: '임플란트', time: '14:15', score: 38, cls: 'in-progress', scores: { w: 42, a: 35, s: 38, sp: 37 } },
+      { name: '윤서아', age: 33, gender: '여', status: '상담 진행', treatment: '치아미백', time: '14:30', score: 67, cls: 'in-progress', scores: { w: 72, a: 65, s: 68, sp: 63 } },
+      { name: '김민수', age: 34, gender: '남', status: '상담대기', treatment: '라미네이트', time: '14:45', score: 58, cls: 'waiting', scores: { w: 55, a: 52, s: 61, sp: 64 } },
+      { name: '이지은', age: 28, gender: '여', status: '계약 진행', treatment: '라미네이트', time: '15:00', score: 72, cls: 'in-progress', scores: { w: 75, a: 70, s: 73, sp: 70 } },
+      { name: '박서준', age: 41, gender: '남', status: '대기', treatment: '임플란트', time: '15:15', score: 45, cls: 'waiting', scores: { w: 48, a: 42, s: 45, sp: 45 } },
+    ];
+
+    const statusColors = {
+      '상담대기': { bg: '#FEF3C7', color: '#92400E' },
+      'AI 촬영 중': { bg: '#EBF3FF', color: '#0066FF' },
+      '상담 진행': { bg: '#D1FAE5', color: '#065F46' },
+      '계약 진행': { bg: '#EDE9FE', color: '#7C3AED' },
+      '대기': { bg: '#F1F5F9', color: '#64748B' },
+    };
+
+    function renderQueue() {
+      document.getElementById('queueList').innerHTML = queue.map((q, i) => {
+        const sc = statusColors[q.status] || statusColors['대기'];
+        return `<div class="queue-item ${q.cls} ${i === 0 ? 'active' : ''}" onclick="selectPatient(${i})">
+          <div class="queue-top">
+            <span class="queue-name">${q.name}</span>
+            <span class="queue-status-badge" style="background:${sc.bg}; color:${sc.color};">${q.status}</span>
+          </div>
+          <div class="queue-meta">
+            <span>${q.gender} ${q.age}세</span>
+            <span>${q.treatment}</span>
+            <span>${q.time}</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function selectPatient(idx) {
+      document.querySelectorAll('.queue-item').forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
+      });
+      renderSpotlight(queue[idx]);
+    }
+
+    function renderSpotlight(p) {
+      const colors = ['#0066FF', '#00D4AA', '#8B5CF6', '#F59E0B', '#EF4444'];
+      const c = colors[Math.floor(Math.random() * colors.length)];
+      const predicted = Math.min(100, p.score + 32);
+
+      const recommendations = [
+        { icon: '&#x1F9B7;', text: `${p.treatment} 시술 추천 — 치아 점수 ${p.score}점 → ${predicted}점 개선 가능` },
+        { icon: '&#x1F4CA;', text: `색상 점수 ${p.scores.w}로 미백 병행 시 추가 효과 기대` },
+        { icon: '&#x1F4B0;', text: `예상 치료 비용: ${p.treatment === '임플란트' ? '150-200만' : p.treatment === '교정' ? '350-500만' : '60-90만'}원` },
+      ];
+
+      document.getElementById('centerBody').innerHTML = `
+        <div class="patient-spotlight">
+          <div class="spotlight-avatar" style="background:${c};">${p.name.charAt(0)}</div>
+          <div class="spotlight-name">${p.name}</div>
+          <div class="spotlight-info">${p.gender} / ${p.age}세 / ${p.treatment} / ${p.status}</div>
+        </div>
+
+        <div class="spotlight-scores">
+          <div class="spot-score">
+            <div class="spot-score-val" style="color:#0066FF;">${p.scores.w}</div>
+            <div class="spot-score-label">색상</div>
+          </div>
+          <div class="spot-score">
+            <div class="spot-score-val" style="color:#00D4AA;">${p.scores.a}</div>
+            <div class="spot-score-label">정렬</div>
+          </div>
+          <div class="spot-score">
+            <div class="spot-score-val" style="color:#8B5CF6;">${p.scores.s}</div>
+            <div class="spot-score-label">대칭</div>
+          </div>
+          <div class="spot-score">
+            <div class="spot-score-val" style="color:#F59E0B;">${p.scores.sp}</div>
+            <div class="spot-score-label">간격</div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:20px;">
+          <div style="flex:1; text-align:center; padding:16px; background:var(--primary-bg); border-radius:var(--radius-md);">
+            <div style="font-size:1.75rem; font-weight:800; color:var(--primary);">${p.score}</div>
+            <div style="font-size:0.75rem; color:var(--text-tertiary);">현재 점수</div>
+          </div>
+          <div style="flex:1; text-align:center; padding:16px; background:#D1FAE5; border-radius:var(--radius-md);">
+            <div style="font-size:1.75rem; font-weight:800; color:#065F46;">${predicted}</div>
+            <div style="font-size:0.75rem; color:var(--text-tertiary);">시술 후 예상</div>
+          </div>
+          <div style="flex:1; text-align:center; padding:16px; background:#FEF3C7; border-radius:var(--radius-md);">
+            <div style="font-size:1.75rem; font-weight:800; color:#92400E;">+${predicted - p.score}%</div>
+            <div style="font-size:0.75rem; color:var(--text-tertiary);">개선율</div>
+          </div>
+        </div>
+
+        <div class="ai-recommendation">
+          <div class="ai-rec-header">&#x1F9E0; AI 추천</div>
+          <div class="ai-rec-items">
+            ${recommendations.map(r => `<div class="ai-rec-item"><span>${r.icon}</span> ${r.text}</div>`).join('')}
+          </div>
+        </div>
+
+        <div class="center-charts">
+          <div class="mini-chart">
+            <h4>시간대별 방문</h4>
+            <canvas id="hourChart"></canvas>
+          </div>
+          <div class="mini-chart">
+            <h4>치료 유형 분포</h4>
+            <canvas id="typeChart"></canvas>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:20px;">
+          <a href="simulator.html" class="btn btn-primary" style="flex:1; text-align:center;">AI 시뮬레이션</a>
+          <a href="chatbot.html" class="btn btn-accent" style="flex:1; text-align:center;">AI 상담</a>
+          <button class="btn btn-secondary" style="flex:1;">상태 변경</button>
+        </div>
+      `;
+
+      // Mini Charts
+      setTimeout(() => {
+        new Chart(document.getElementById('hourChart'), {
+          type: 'bar',
+          data: {
+            labels: ['9시', '10시', '11시', '12시', '13시', '14시', '15시', '16시'],
+            datasets: [{ data: [3, 5, 7, 2, 4, 8, 6, 3], backgroundColor: 'rgba(0,102,255,0.6)', borderRadius: 4, borderSkipped: false }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
+        });
+
+        new Chart(document.getElementById('typeChart'), {
+          type: 'doughnut',
+          data: {
+            labels: ['라미네이트', '미백', '임플란트', '교정'],
+            datasets: [{ data: [42, 25, 18, 15], backgroundColor: ['#0066FF', '#00D4AA', '#F59E0B', '#8B5CF6'], borderWidth: 0 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: false } } }
+        });
+      }, 50);
+    }
+
+    // --- Activity Feed ---
+    const activities = [
+      { icon: '&#x1F4F7;', bg: '#EBF3FF', text: '<strong>윤서아</strong> AI 촬영 완료', time: '1분 전' },
+      { icon: '&#x2705;', bg: '#D1FAE5', text: '<strong>이지은</strong> 라미네이트 계약 완료 (85만원)', time: '5분 전' },
+      { icon: '&#x1F4AC;', bg: '#FEF3C7', text: '<strong>오민혁</strong> 상담 시작', time: '8분 전' },
+      { icon: '&#x1F4CA;', bg: '#EDE9FE', text: 'AI 분석: <strong>김민수</strong> 치아점수 58점', time: '12분 전' },
+      { icon: '&#x1F465;', bg: '#FFE4E6', text: '<strong>최유나</strong> 내원 접수', time: '15분 전' },
+      { icon: '&#x1F4B0;', bg: '#D1FAE5', text: '오전 매출 합계: <strong>1,920만원</strong>', time: '30분 전' },
+      { icon: '&#x1F9B7;', bg: '#EBF3FF', text: '<strong>한소희</strong> 라미네이트 시술 완료', time: '45분 전' },
+      { icon: '&#x1F4CB;', bg: '#F1F5F9', text: '일일 보고서 자동 생성 완료', time: '1시간 전' },
+    ];
+
+    document.getElementById('activityList').innerHTML = activities.map(a => `
+      <div class="activity-item">
+        <div class="activity-icon" style="background:${a.bg};">${a.icon}</div>
+        <div>
+          <div class="activity-text">${a.text}</div>
+          <div class="activity-time">${a.time}</div>
+        </div>
+      </div>
+    `).join('');
+
+    // --- Init ---
+    renderQueue();
+    renderSpotlight(queue[0]);
+
+    // Simulate live updates
+    let revenueBase = 2840;
+    setInterval(() => {
+      revenueBase += Math.floor(Math.random() * 30);
+      const formatted = Math.floor(revenueBase / 10) * 10;
+      document.getElementById('liveRevenue').textContent = (formatted / 100).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '0만';
+      const pct = Math.min(100, (revenueBase / 4000) * 100);
+      document.getElementById('revenueBar').style.width = pct + '%';
+    }, 5000);
+
+    // Simulate patient count updates
+    setInterval(() => {
+      const el = document.getElementById('livePatients');
+      const current = parseInt(el.textContent);
+      const delta = Math.random() > 0.5 ? 1 : -1;
+      el.textContent = Math.max(10, Math.min(25, current + delta));
+    }, 8000);
+  </script>
+</body>
+</html>
