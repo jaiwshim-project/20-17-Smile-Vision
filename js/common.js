@@ -120,11 +120,7 @@ function renderSidebar(activePage) {
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
-        <div class="sidebar-logo-icon">&#x1F9B7;</div>
-        <div>
-          <div class="sidebar-logo-text">Smile Vision AI</div>
-          <div class="sidebar-logo-sub">DENTAL SIMULATION PLATFORM</div>
-        </div>
+        <img src="img/logo.png" alt="Smile Vision AI" class="sidebar-logo-img">
       </div>
     </div>
     <nav class="sidebar-nav">
@@ -257,6 +253,56 @@ function renderSidebar(activePage) {
     </div>
   </div>`;
 }
+
+// --- Premium Footer (공통) ---
+function renderFooter() {
+  return `
+  <footer class="premium-footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <img src="img/logo.png" alt="Smile Vision AI" class="footer-brand-logo">
+          <p>AI 기반 치과 시뮬레이션 플랫폼. 환자의 현재 치아를 촬영하면 라미네이트 시술 후 모습을 실시간으로 보여줍니다.</p>
+        </div>
+        <div class="footer-section">
+          <h4>Platform</h4>
+          <a href="simulator.html" class="footer-link">AI 시뮬레이터</a>
+          <a href="patients.html" class="footer-link">환자 관리</a>
+          <a href="dashboard.html" class="footer-link">대시보드</a>
+          <a href="chatbot.html" class="footer-link">AI 상담 챗봇</a>
+        </div>
+        <div class="footer-section">
+          <h4>AI Engine</h4>
+          <a href="scoring.html" class="footer-link">점수 엔진</a>
+          <a href="command-center.html" class="footer-link">지휘센터</a>
+          <span class="footer-link" style="cursor:default;">Gemini 2.5 Flash</span>
+          <span class="footer-link" style="cursor:default;">MediaPipe Face Mesh</span>
+        </div>
+        <div class="footer-section">
+          <h4>Technology</h4>
+          <span class="footer-link" style="cursor:default;">Supabase DB</span>
+          <span class="footer-link" style="cursor:default;">Dental Scoring v1.0</span>
+          <span class="footer-link" style="cursor:default;">Image Generation AI</span>
+          <span class="footer-link" style="cursor:default;">4-Stage Pipeline</span>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy">&copy; ${new Date().getFullYear()} Smile Vision AI. Powered by AX Dental Solutions.</div>
+        <div class="footer-badges">
+          <span class="footer-badge">Gemini AI</span>
+          <span class="footer-badge">Supabase</span>
+          <span class="footer-badge">MediaPipe</span>
+        </div>
+      </div>
+    </div>
+  </footer>`;
+}
+
+// 모든 페이지에 자동 삽입
+document.addEventListener('DOMContentLoaded', () => {
+  const content = document.querySelector('.content');
+  if (content) content.insertAdjacentHTML('afterend', renderFooter());
+});
 
 // --- Supabase Config (공통) ---
 function saveSupabaseConfig() {
