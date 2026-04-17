@@ -515,7 +515,9 @@
               </div>
               <div style="display:flex; justify-content:space-between; margin-top:6px;">
                 <span style="font-size:0.75rem; color:var(--text-tertiary);">${date}</span>
-                <span style="font-size:0.75rem; font-weight:700;">${sim.total_score || '-'}점 → ${sim.predicted_score || '-'}점</span>
+                <span style="font-size:0.75rem; font-weight:700;">${sim.total_score || '-'}점 → ${
+                  sim.selected_style === 'white' ? '91' : sim.selected_style === 'premium' ? '85' : sim.selected_style === 'natural' ? '77' : (sim.predicted_score || '-')
+                }점</span>
               </div>
             </div>
           </div>`;
