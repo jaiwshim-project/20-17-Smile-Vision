@@ -178,29 +178,7 @@
     .style-tab.active { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); }
 
     /* --- Score Summary --- */
-    .score-summary {
-      display: flex;
-      gap: 12px;
-      padding: 16px 20px;
-      flex-wrap: wrap;
-      border-top: 1px solid var(--gray-100);
-    }
-    .score-box {
-      flex: 1;
-      min-width: 100px;
-      text-align: center;
-      padding: 16px;
-      border-radius: var(--radius-md);
-    }
-    .score-box-value {
-      font-size: 1.75rem;
-      font-weight: 800;
-    }
-    .score-box-label {
-      font-size: 0.6875rem;
-      color: var(--text-tertiary);
-      margin-top: 4px;
-    }
+    /* score-summary removed — replaced by 4-bar inline */
     .score-items {
       display: flex;
       gap: 8px;
@@ -380,8 +358,8 @@
               </div>
               <div class="style-tabs" id="styleTabs">
                 <button class="style-tab active" data-style="natural" onclick="setStyle('natural', this)">자연형</button>
-                <button class="style-tab" data-style="white" onclick="setStyle('white', this)">화이트형</button>
                 <button class="style-tab" data-style="premium" onclick="setStyle('premium', this)">프리미엄형</button>
+                <button class="style-tab" data-style="white" onclick="setStyle('white', this)">화이트형</button>
               </div>
             </div>
 
@@ -422,8 +400,7 @@
                 </div>
               </div>
 
-              <!-- Scores -->
-              <div class="score-summary" id="scoreSummary"></div>
+              <!-- Scores (4줄 바 비교 + 종합) -->
               <div class="score-detail-section" id="scoreDetailSection"></div>
 
               <!-- Download -->
@@ -627,24 +604,7 @@
         : total >= 40 ? { g: 'C', c: '#EF4444', bg: '#FEE2E2', label: '주의' }
         : { g: 'D', c: '#991B1B', bg: '#FEE2E2', label: '심각' };
 
-      document.getElementById('scoreSummary').innerHTML = `
-        <div class="score-box" style="background:${gradeInfo.bg};">
-          <div class="score-box-value" style="color:${gradeInfo.c};">${gradeInfo.g}</div>
-          <div class="score-box-label">등급 (${gradeInfo.label})</div>
-        </div>
-        <div class="score-box" style="background:var(--primary-bg);">
-          <div class="score-box-value" style="color:var(--primary);">${total}</div>
-          <div class="score-box-label">현재 점수</div>
-        </div>
-        <div class="score-box" style="background:#D1FAE5;">
-          <div class="score-box-value" style="color:#065F46;">${predicted}</div>
-          <div class="score-box-label">시술 후 예상</div>
-        </div>
-        <div class="score-box" style="background:#FEF3C7;">
-          <div class="score-box-value" style="color:#92400E;">+${improvement}</div>
-          <div class="score-box-label">개선 점수</div>
-        </div>
-      `;
+      // scoreSummary 카드 제거됨 — scoreDetailSection에 통합
 
       // 항목별 상세 점수 + 설명 + 바 차트
       // 예상 점수 계산
