@@ -252,6 +252,36 @@
             </div>
           </div>
 
+          <!-- 교합 분석 -->
+          <div class="card mt-24">
+            <div class="card-header"><h3>&#x1FA77; 교합 분석 (Occlusion Analysis)</h3></div>
+            <div class="card-body">
+              <div class="grid-2">
+                <!-- 교합 히트맵 -->
+                <div>
+                  <div style="font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:8px;">교합 압력 분포</div>
+                  <div class="analysis-canvas-wrap" style="width:100%;">
+                    <canvas id="occlusionCanvas" style="width:100%;"></canvas>
+                  </div>
+                  <div class="overlay-legend" style="margin-top:8px;">
+                    <div class="overlay-legend-item"><div class="overlay-legend-dot" style="background:#EF4444;"></div>과부하</div>
+                    <div class="overlay-legend-item"><div class="overlay-legend-dot" style="background:#F59E0B;"></div>경계</div>
+                    <div class="overlay-legend-item"><div class="overlay-legend-dot" style="background:#10B981;"></div>정상</div>
+                    <div class="overlay-legend-item"><div class="overlay-legend-dot" style="background:#3B82F6;"></div>부족</div>
+                  </div>
+                </div>
+                <!-- 교합 지표 -->
+                <div id="occlusionMetrics"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI 치료 추천 의사결정 트리 -->
+          <div class="card mt-24">
+            <div class="card-header"><h3>&#x1F3AF; AI 치료 추천 (의사결정 트리)</h3></div>
+            <div class="card-body" id="decisionTree"></div>
+          </div>
+
           <!-- Before/After + 개선 점수 -->
           <div class="card mt-24">
             <div class="card-header"><h3>&#x1F4CA; 개선 시뮬레이션</h3></div>
@@ -464,6 +494,9 @@ Keep face, skin, expression, lighting, background EXACTLY the same. ONLY modify 
       renderAngleMetrics();
       renderRatioAnalysis();
       renderSvOi();
+      drawOcclusionHeatmap();
+      renderOcclusionMetrics();
+      renderDecisionTree();
 
       // KPI
       const scoreColors = { alignment:'#0066FF', symmetry:'#8B5CF6', angle:'#F59E0B', smile_line:'#00D4AA', spacing:'#EC4899', midline:'#06B6D4' };
@@ -868,6 +901,264 @@ Keep face, skin, expression, lighting, background EXACTLY the same. ONLY modify 
           </div>
         </div>
       `).join('');
+    }
+
+    // 교합 압력 히트맵
+    function drawOcclusionHeatmap() {
+      const canvas = document.getElementById('occlusionCanvas');
+      const ctx = canvas.getContext('2d');
+      const W = 400, H = 280;
+      canvas.width = W; canvas.height = H;
+
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(0, 0, W, H);
+
+      const ang = orthoAnalysis.angles || {};
+      const cx = W / 2;
+
+      // 제목
+      ctx.fillStyle = '#1E293B'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('교합 접촉점 & 압력 분포', cx, 20);
+
+      // 치아 아치 (상악)
+      ctx.strokeStyle = '#CBD5E1'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.ellipse(cx, 100, 150, 60, 0, Math.PI, 0); ctx.stroke();
+      ctx.fillStyle = '#94A3B8'; ctx.font = '9px sans-serif';
+      ctx.fillText('상악 (Upper)', cx, 48);
+
+      // 치아 아치 (하악)
+      ctx.strokeStyle = '#CBD5E1';
+      ctx.beginPath(); ctx.ellipse(cx, 180, 140, 55, 0, 0, Math.PI); ctx.stroke();
+      ctx.fillText('하악 (Lower)', cx, 245);
+
+      // 접촉점 시뮬레이션
+      const contacts = [
+        { x: cx - 100, y: 135, pressure: 0.9, label: '구치부 L' },
+        { x: cx - 60, y: 125, pressure: 0.5, label: '소구치 L' },
+        { x: cx - 25, y: 118, pressure: 0.7, label: '견치 L' },
+        { x: cx - 8, y: 115, pressure: 0.95, label: '측절치 L' },
+        { x: cx + 8, y: 115, pressure: 0.85, label: '측절치 R' },
+        { x: cx + 25, y: 118, pressure: 0.4, label: '견치 R' },
+        { x: cx + 60, y: 125, pressure: 0.6, label: '소구치 R' },
+        { x: cx + 100, y: 135, pressure: 0.8, label: '구치부 R' },
+      ];
+
+      contacts.forEach(c => {
+        // 압력 색상
+        let color;
+        if (c.pressure > 0.85) color = '#EF4444';
+        else if (c.pressure > 0.65) color = '#F59E0B';
+        else if (c.pressure > 0.4) color = '#10B981';
+        else color = '#3B82F6';
+
+        // 히트맵 원
+        const radius = 8 + c.pressure * 12;
+        const gradient = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, radius);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, color.replace(')', ',0.1)').replace('rgb', 'rgba'));
+        ctx.fillStyle = gradient;
+        ctx.beginPath(); ctx.arc(c.x, c.y, radius, 0, Math.PI * 2); ctx.fill();
+
+        // 압력 수치
+        ctx.fillStyle = '#FFF'; ctx.font = 'bold 8px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(Math.round(c.pressure * 100), c.x, c.y + 3);
+      });
+
+      // Overbite/Overjet 표시
+      const ob = ang.overbite_mm || 2.5;
+      const oj = ang.overjet_mm || 2.5;
+      ctx.fillStyle = '#1E293B'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText(`Overbite: ${ob}mm ${ob > 3.5 ? '⚠️ 과개교합' : '✅'}`, 10, H - 25);
+      ctx.fillText(`Overjet: ${oj}mm ${oj > 3.5 ? '⚠️ 과잉' : '✅'}`, 10, H - 10);
+
+      // Angle 분류
+      const mc = orthoAnalysis.malocclusion_class || 'I';
+      ctx.textAlign = 'right';
+      ctx.fillText(`Angle Class ${mc}`, W - 10, H - 10);
+    }
+
+    // 교합 지표
+    function renderOcclusionMetrics() {
+      const ang = orthoAnalysis.angles || {};
+      const ob = ang.overbite_mm || 2.5;
+      const oj = ang.overjet_mm || 2.5;
+      const mc = orthoAnalysis.malocclusion_class || 'I';
+
+      const items = [
+        { label: 'Angle 부정교합 분류', value: 'Class ' + mc,
+          desc: mc === 'I' ? '정상 교합 관계 — 상악 제1대구치와 하악 제1대구치의 관계가 정상' :
+                mc === 'II-1' ? '상악 전돌 + 앞니 순측 경사 — 윗니가 앞으로 돌출' :
+                mc === 'II-2' ? '상악 전돌 + 앞니 설측 경사 — 윗니가 안으로 기울어짐' :
+                '하악 전돌 — 아래턱이 앞으로 나옴 (주걱턱)',
+          status: mc === 'I' ? 'ok' : 'warning' },
+        { label: '수직 피개 (Overbite)', value: ob + 'mm',
+          desc: ob < 1 ? '개방교합(Open bite) — 앞니가 맞물리지 않아 발음/저작 문제' :
+                ob <= 3.5 ? '정상 범위 — 상악 전치가 하악 전치를 2~3mm 덮음' :
+                '과개교합(Deep bite) — 아래 앞니가 과도하게 가려져 잇몸 손상 위험',
+          status: ob >= 1.5 && ob <= 3.5 ? 'ok' : ob > 3.5 ? 'critical' : 'warning' },
+        { label: '수평 피개 (Overjet)', value: oj + 'mm',
+          desc: oj < 0 ? '역피개(Crossbite) — 아래 앞니가 윗니보다 앞에 위치' :
+                oj <= 3.5 ? '정상 범위 — 상악 전치가 하악 전치보다 2~3mm 앞에 위치' :
+                '과잉 수평피개 — 윗니 돌출, 외상 위험 증가, 입술 닫힘 어려움',
+          status: oj >= 1.5 && oj <= 3.5 ? 'ok' : 'warning' },
+        { label: '교합 평면 경사', value: (ang.occlusal_plane_angle || 9) + '°',
+          desc: '정상 8~10°. 교합 평면이 기울어지면 좌우 씹는 힘이 불균형해지고 턱관절에 부담을 줍니다.',
+          status: (ang.occlusal_plane_angle || 9) >= 7 && (ang.occlusal_plane_angle || 9) <= 11 ? 'ok' : 'warning' },
+        { label: '교합 평면 좌우 기울기', value: (ang.cant_angle || 0) + '°',
+          desc: '정상 0~1°. 좌우 기울기가 있으면 얼굴 비대칭과 턱관절 장애(TMD)의 원인이 됩니다.',
+          status: (ang.cant_angle || 0) <= 1.5 ? 'ok' : 'warning' },
+      ];
+
+      const statusIcons = { ok: '&#x2705;', warning: '&#x26A0;', critical: '&#x1F6A8;' };
+      const statusColors = { ok: 'var(--success)', warning: 'var(--warning)', critical: 'var(--danger)' };
+
+      document.getElementById('occlusionMetrics').innerHTML = `
+        <div style="font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:10px;">교합 핵심 지표</div>
+        ${items.map(m => `
+          <div style="padding:10px 0; border-bottom:1px solid var(--gray-100);">
+            <div style="display:flex; align-items:center; gap:8px; font-size:0.8125rem;">
+              <span>${statusIcons[m.status]}</span>
+              <span style="flex:1; font-weight:600;">${m.label}</span>
+              <span style="font-weight:800; color:${statusColors[m.status]};">${m.value}</span>
+            </div>
+            <div style="font-size:0.6875rem; color:var(--text-tertiary); margin-top:4px; margin-left:26px;">${m.desc}</div>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    // AI 치료 추천 의사결정 트리
+    function renderDecisionTree() {
+      const a = orthoAnalysis;
+      const s = a.scores || {};
+      const ang = a.angles || {};
+      const r = a.ratios || {};
+
+      // 의사결정 로직
+      const decisions = [];
+
+      // 1. 교합 문제 확인
+      const ob = ang.overbite_mm || 2.5;
+      const oj = ang.overjet_mm || 2.5;
+      const hasOcclusionIssue = ob > 3.5 || ob < 1 || oj > 3.5 || oj < 0;
+
+      // 2. 정렬 문제
+      const hasAlignmentIssue = (s.alignment || 50) < 55;
+      const severeAlignment = (s.alignment || 50) < 40;
+
+      // 3. 심미 문제
+      const hasAestheticIssue = (s.smile_line || 50) < 55 || (r.central_width_height || 77) < 73;
+
+      // 4. 각도 문제
+      const uAngle = ang.upper_incisor_angle || 110;
+      const hasAngleIssue = Math.abs(uAngle - 110) > 8;
+
+      // 의사결정 경로
+      decisions.push({
+        step: 1, question: '교합 문제가 있는가?',
+        answer: hasOcclusionIssue ? '예' : '아니오',
+        detail: hasOcclusionIssue
+          ? `Overbite ${ob}mm, Overjet ${oj}mm — ${ob > 3.5 ? '과개교합' : ob < 1 ? '개방교합' : ''}${oj > 3.5 ? ' 과잉 수평피개' : ''} 감지`
+          : `Overbite ${ob}mm, Overjet ${oj}mm — 정상 범위`,
+        result: hasOcclusionIssue,
+        color: hasOcclusionIssue ? '#EF4444' : '#10B981',
+      });
+
+      if (hasOcclusionIssue) {
+        decisions.push({
+          step: 2, question: '교합 조정만으로 해결 가능한가?',
+          answer: ob <= 5 && oj <= 5 ? '부분 가능' : '교정 필요',
+          detail: ob <= 5 ? '미세 교합 조정(스플린트) + 교정 병행 추천' : '본격 교정 치료 필요 (교합 재구성)',
+          result: ob > 5,
+          color: '#F59E0B',
+        });
+      }
+
+      decisions.push({
+        step: hasOcclusionIssue ? 3 : 2,
+        question: '치아 정렬/각도 문제가 있는가?',
+        answer: hasAlignmentIssue || hasAngleIssue ? '예' : '아니오',
+        detail: hasAlignmentIssue
+          ? `정렬 점수 ${s.alignment || 50}점${hasAngleIssue ? ', 상악 경사 ' + uAngle + '° (정상 110±5°)' : ''}`
+          : `정렬 양호 (${s.alignment || 50}점)`,
+        result: hasAlignmentIssue || hasAngleIssue,
+        color: hasAlignmentIssue || hasAngleIssue ? '#EF4444' : '#10B981',
+      });
+
+      if (hasAlignmentIssue || hasAngleIssue) {
+        decisions.push({
+          step: decisions.length + 1,
+          question: '정렬 문제가 심각한가?',
+          answer: severeAlignment ? '심각 (교정 필수)' : '경미 (라미네이트 가능)',
+          detail: severeAlignment
+            ? '정렬 40점 미만 — 고정식 교정 또는 투명교정 필수'
+            : '정렬 40~55점 — 라미네이트로 외형 개선 또는 부분 교정',
+          result: severeAlignment,
+          color: severeAlignment ? '#EF4444' : '#F59E0B',
+        });
+      }
+
+      decisions.push({
+        step: decisions.length + 1,
+        question: '심미적 개선이 필요한가?',
+        answer: hasAestheticIssue ? '예' : '아니오',
+        detail: hasAestheticIssue
+          ? `스마일라인 ${s.smile_line || 50}점, 치아비율 ${r.central_width_height || 77}% — 라미네이트/미백 추천`
+          : `심미 양호 — 유지 관리`,
+        result: hasAestheticIssue,
+        color: hasAestheticIssue ? '#F59E0B' : '#10B981',
+      });
+
+      // 최종 추천
+      let finalRec, finalColor, finalIcon;
+      if (hasOcclusionIssue && severeAlignment) {
+        finalRec = '종합 교정 치료 (교정장치 + 교합 조정)';
+        finalColor = '#EF4444'; finalIcon = '&#x1F6A8;';
+      } else if (hasAlignmentIssue && hasAngleIssue) {
+        finalRec = '투명 교정 + 라미네이트 병행';
+        finalColor = '#8B5CF6'; finalIcon = '&#x1FA7B;';
+      } else if (hasAlignmentIssue || hasOcclusionIssue) {
+        finalRec = '부분 교정 또는 투명 교정';
+        finalColor = '#F59E0B'; finalIcon = '&#x1F504;';
+      } else if (hasAestheticIssue) {
+        finalRec = '라미네이트 + 치아 미백';
+        finalColor = '#0066FF'; finalIcon = '&#x2728;';
+      } else {
+        finalRec = '정기 검진 및 미백 유지';
+        finalColor = '#10B981'; finalIcon = '&#x2705;';
+      }
+
+      let html = '<div style="font-size:0.8125rem; color:var(--text-secondary); margin-bottom:16px;">AI가 교합·정렬·심미 데이터를 종합 분석하여 최적 치료를 추천합니다.</div>';
+
+      // 결정 과정
+      decisions.forEach((d, i) => {
+        html += `
+          <div style="display:flex; gap:12px; align-items:flex-start; margin-bottom:4px;">
+            <div style="width:28px; height:28px; border-radius:50%; background:${d.color}; color:#FFF; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:800; flex-shrink:0;">${d.step}</div>
+            <div style="flex:1; padding:12px 16px; background:var(--gray-50); border-radius:var(--radius-md); border-left:3px solid ${d.color};">
+              <div style="font-size:0.8125rem; font-weight:700;">${d.question}</div>
+              <div style="font-size:0.8125rem; font-weight:700; color:${d.color}; margin-top:4px;">${d.answer}</div>
+              <div style="font-size:0.6875rem; color:var(--text-tertiary); margin-top:2px;">${d.detail}</div>
+            </div>
+          </div>
+          ${i < decisions.length - 1 ? '<div style="margin-left:14px; width:1px; height:12px; background:var(--gray-300);"></div>' : ''}
+        `;
+      });
+
+      // 최종 추천
+      html += `
+        <div style="margin-top:16px; padding:20px; background:linear-gradient(135deg, ${finalColor}10, ${finalColor}05); border:2px solid ${finalColor}30; border-radius:var(--radius-lg); text-align:center;">
+          <div style="font-size:1.5rem; margin-bottom:8px;">${finalIcon}</div>
+          <div style="font-size:0.6875rem; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:0.05em;">AI 최종 추천</div>
+          <div style="font-size:1.125rem; font-weight:800; color:${finalColor}; margin-top:4px;">${finalRec}</div>
+          <div style="font-size:0.8125rem; color:var(--text-secondary); margin-top:8px;">
+            예상 기간: <strong>${a.duration_months || 12}개월</strong> |
+            예상 점수: <strong>${a.total_score}점 → ${a.predicted_score}점</strong> |
+            개선: <strong>+${a.predicted_score - a.total_score}점</strong>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('decisionTree').innerHTML = html;
     }
 
     function resetAnalysis() {
