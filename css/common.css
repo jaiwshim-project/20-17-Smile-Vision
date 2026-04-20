@@ -40,13 +40,13 @@
   --surface-elevated: #FFFFFF;
   --bg: #F0F4F8;
 
-  /* Text Opacity Hierarchy */
-  --text-primary: rgba(15, 23, 42, 0.92);
-  --text-secondary: rgba(15, 23, 42, 0.68);
-  --text-tertiary: rgba(15, 23, 42, 0.48);
-  --text-disabled: rgba(15, 23, 42, 0.32);
-  --text-on-primary: rgba(255, 255, 255, 0.96);
-  --text-on-primary-secondary: rgba(255, 255, 255, 0.72);
+  /* Text Hierarchy — Color-based (not opacity) */
+  --text-primary: #0F172A;     /* L1: 제목, 헤더 */
+  --text-secondary: #334155;   /* L2: 본문, 라벨 */
+  --text-tertiary: #64748B;    /* L3: 보조 설명 */
+  --text-disabled: #CBD5E1;    /* L5: 비활성 */
+  --text-on-primary: #FFFFFF;  /* 다크 배경 위 텍스트 */
+  --text-on-primary-secondary: #E0E7FF; /* 다크 배경 위 보조 텍스트 */
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
@@ -232,20 +232,41 @@ small, .caption { font-size: 0.8125rem; color: var(--text-tertiary); }
 
 .content { padding: 32px; max-width: var(--content-max); margin: 0 auto; }
 
-/* --- Cards --- */
+/* --- Cards (Premium) --- */
 .card {
-  background: var(--surface);
+  background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--gray-200);
+  border: 1px solid;
+  border-image: linear-gradient(135deg, rgba(0,102,255,0.15) 0%, rgba(0,212,170,0.08) 100%) 1;
   overflow: hidden;
-  transition: box-shadow var(--duration) var(--ease), transform var(--duration) var(--ease);
+  transition: all var(--duration) var(--ease);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,0.04),
+    0 4px 12px rgba(0,102,255,0.06);
+  position: relative;
 }
 
-.card:hover { box-shadow: var(--shadow-md); }
-.card-header { padding: 20px 24px; border-bottom: 1px solid var(--gray-100); }
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,102,255,0.2), transparent);
+  pointer-events: none;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.06),
+    0 12px 32px rgba(0,102,255,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+  border-color: rgba(0,102,255,0.25);
+}
+
+.card-header { padding: 20px 24px; border-bottom: 1px solid rgba(0,102,255,0.06); }
 .card-body { padding: 24px; }
-.card-footer { padding: 16px 24px; border-top: 1px solid var(--gray-100); }
+.card-footer { padding: 16px 24px; border-top: 1px solid rgba(0,102,255,0.06); }
 
 /* --- Buttons --- */
 .btn {
@@ -305,7 +326,7 @@ small, .caption { font-size: 0.8125rem; color: var(--text-tertiary); }
 .badge-warning { background: #FEF3C7; color: #92400E; }
 .badge-danger { background: #FEE2E2; color: #991B1B; }
 
-/* --- KPI Cards --- */
+/* --- KPI Cards (Premium) --- */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -313,11 +334,33 @@ small, .caption { font-size: 0.8125rem; color: var(--text-tertiary); }
 }
 
 .kpi-card {
-  background: var(--surface);
+  background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
   border-radius: var(--radius-lg);
   padding: 24px;
-  border: 1px solid var(--gray-200);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,102,255,0.12);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,0.04),
+    0 4px 12px rgba(0,102,255,0.06);
+  transition: all var(--duration) var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,102,255,0.15), transparent);
+  pointer-events: none;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.06),
+    0 12px 32px rgba(0,102,255,0.12);
+  border-color: rgba(0,102,255,0.25);
 }
 
 .kpi-label {
