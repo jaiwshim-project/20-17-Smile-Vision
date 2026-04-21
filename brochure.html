@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="img/logo.png" type="image/png">
+  <meta name="description" content="Smile Vision AI — 차과병원 소개자료. 원장과 상담실장을 위한 플랫폼 가이드">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smile Vision AI — 소개자료</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    /* Brochure Specific Styles */
+    .brochure-hero {
+      background: linear-gradient(135deg, #1E3A5F 0%, #0F4C75 100%);
+      padding: 80px 48px;
+      border-radius: var(--radius-xl);
+      color: #FFF;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 64px;
+    }
+    .brochure-hero::before {
+      content: '';
+      position: absolute;
+      top: -20%; right: -10%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(100,200,255,0.2) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .brochure-hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+    }
+    .brochure-hero h1 {
+      font-size: 2.75rem;
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 20px;
+    }
+    .brochure-hero .subtitle {
+      font-size: 1.25rem;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    .target-info {
+      background: rgba(255,255,255,0.1);
+      border-left: 4px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin-top: 28px;
+      font-size: 0.95rem;
+    }
+
+    /* Value Proposition Grid */
+    .value-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin: 64px 0;
+    }
+    .value-card {
+      background: var(--surface);
+      border: 2px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      transition: all var(--duration) var(--ease);
+      position: relative;
+    }
+    .value-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 8px 32px rgba(0,102,255,0.12);
+      transform: translateY(-4px);
+    }
+    .value-card .icon {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+    .value-card h3 {
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+    .value-card p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .value-badge {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 6px 12px;
+      background: var(--primary-bg);
+      color: var(--primary);
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    /* Differentiator Section */
+    .differentiator-section {
+      background: linear-gradient(135deg, rgba(0,102,255,0.05) 0%, rgba(0,212,170,0.05) 100%);
+      border-radius: var(--radius-xl);
+      padding: 48px;
+      margin: 64px 0;
+      border: 1px solid var(--gray-200);
+    }
+    .differentiator-section h2 {
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .differentiator-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 28px;
+    }
+    .diff-item {
+      background: #FFF;
+      padding: 28px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
+    .diff-item .label {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .diff-item .content {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    /* Benefits by Role */
+    .benefits-section {
+      margin: 64px 0;
+    }
+    .role-benefits {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px;
+    }
+    .role-card {
+      background: var(--surface);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: 0;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .role-header {
+      background: linear-gradient(135deg, #0F4C75 0%, #1E3A5F 100%);
+      color: #FFF;
+      padding: 24px;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    .role-header .role-icon {
+      font-size: 1.8rem;
+      margin-right: 12px;
+    }
+    .role-body {
+      padding: 24px;
+    }
+    .benefit-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .benefit-item:last-child {
+      margin-bottom: 0;
+    }
+    .benefit-check {
+      color: var(--success);
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 1.25rem;
+    }
+    .benefit-text {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Stats Section */
+    .stats-banner {
+      background: linear-gradient(135deg, #0F172A 0%, #0F4C75 50%, #1E3A5F 100%);
+      border-radius: var(--radius-xl);
+      padding: 48px;
+      margin: 64px 0;
+      color: #FFF;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 32px;
+      text-align: center;
+    }
+    .stat-item {
+      padding: 24px;
+    }
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .stat-label {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.5;
+    }
+
+    /* CTA Section */
+    .cta-banner {
+      background: linear-gradient(135deg, var(--primary) 0%, #0066FF 100%);
+      border-radius: var(--radius-xl);
+      padding: 56px 48px;
+      text-align: center;
+      color: #FFF;
+      margin: 64px 0;
+    }
+    .cta-banner h2 {
+      color: #FFF;
+      margin-bottom: 20px;
+    }
+    .cta-banner p {
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 32px;
+      font-size: 1.05rem;
+    }
+    .cta-button-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .cta-btn {
+      padding: 14px 32px;
+      border-radius: var(--radius-lg);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all var(--duration) var(--ease));
+      border: none;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .cta-btn.primary {
+      background: #FFF;
+      color: var(--primary);
+    }
+    .cta-btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .cta-btn.secondary {
+      background: rgba(255,255,255,0.2);
+      color: #FFF;
+      border: 2px solid #FFF;
+    }
+    .cta-btn.secondary:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    /* Sections */
+    .brochure-section {
+      margin-bottom: 64px;
+    }
+    .brochure-section h2 {
+      margin-bottom: 32px;
+      font-size: 2rem;
+      position: relative;
+      padding-bottom: 16px;
+    }
+    .brochure-section h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), transparent);
+      border-radius: var(--radius-full);
+    }
+
+    /* Print Friendly */
+    @media print {
+      body { background: #FFF; }
+      .header, .sidebar, .premium-footer { display: none; }
+      .brochure-hero { page-break-after: avoid; }
+      .role-card { page-break-inside: avoid; }
+      .value-card { page-break-inside: avoid; }
+    }
+
+    @media (max-width: 768px) {
+      .brochure-hero {
+        padding: 48px 24px;
+      }
+      .brochure-hero h1 {
+        font-size: 1.75rem;
+      }
+      .differentiator-section {
+        padding: 32px 24px;
+      }
+      .stats-banner {
+        padding: 40px 24px;
+      }
+      .cta-banner {
+        padding: 40px 24px;
+      }
+      .cta-button-group {
+        flex-direction: column;
+      }
+      .cta-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="app">
+    <div class="main">
+      <header class="header">
+        <div class="flex items-center gap-12">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <span class="header-title">Smile Vision AI</span>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-sm btn-outline" onclick="window.print()">인쇄 / PDF 다운로드</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Hero Section -->
+        <section class="brochure-hero">
+          <div class="brochure-hero-content">
+            <h1>치과 경영 혁신</h1>
+            <p class="subtitle">Smile Vision AI로 환자 경험을 극대화하고<br>상담 전환율을 획기적으로 높이세요</p>
+            <div class="target-info">
+              <strong>이 자료는 차과병원 원장과 상담실장을 위해 제작되었습니다.</strong><br>
+              AI 시뮬레이션으로 환자 만족도를 높이고, 데이터 기반 경영으로 매출을 증대시키는 전략을 소개합니다.
+            </div>
+          </div>
+        </section>
+
+        <!-- Value Proposition -->
+        <section class="brochure-section">
+          <h2>Smile Vision AI가 제공하는 가치</h2>
+          <div class="value-grid">
+            <div class="value-card">
+              <div class="icon">🎯</div>
+              <h3>상담 전환율 3.2배 증가</h3>
+              <p>Before/After 시뮬레이션으로 환자의 시술 의욕을 자극하고, 즉시 상담 전환 가능</p>
+              <span class="value-badge">핵심 가치 1</span>
+            </div>
+            <div class="value-card">
+              <div class="icon">⏱️</div>
+              <h3>3초 안에 완성되는 분석</h3>
+              <p>AI가 치아 촬영 직후 즉시 분석 완료. 상담 시간 없이 바로 시술 설득 가능</p>
+              <span class="value-badge">효율성</span>
+            </div>
+            <div class="value-card">
+              <div class="icon">📊</div>
+              <h3>92% 정확도의 시뮬레이션</h3>
+              <p>의료급 AI 정확도로 환자 신뢰도 극대화. 실제 시술 결과와 거의 일치</p>
+              <span class="value-badge">신뢰도</span>
+            </div>
+            <div class="value-card">
+              <div class="icon">💰</div>
+              <h3>매출 증대 및 비용 절감</h3>
+              <p>상담 효율화로 인건비 절감, 전환율 증가로 매출 증대. 이중 효과로 수익성 향상</p>
+              <span class="value-badge">수익성</span>
+            </div>
+            <div class="value-card">
+              <div class="icon">👥</div>
+              <h3>환자 데이터 통합 관리</h3>
+              <p>개별 환자의 상담 이력, 시술 결과, 만족도를 한 곳에서 관리. 재방문율 증대</p>
+              <span class="value-badge">CRM</span>
+            </div>
+            <div class="value-card">
+              <div class="icon">🏆</div>
+              <h3>경쟁력 있는 차별화</h3>
+              <p>일반 병원과는 다른 고급 상담 경험. 프리미엄 이미지 구축 및 입소문 확대</p>
+              <span class="value-badge">브랜딩</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Statistics -->
+        <section class="stats-banner">
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-number">3초</div>
+              <div class="stat-label">AI 분석 소요시간</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">92%</div>
+              <div class="stat-label">시뮬레이션 정확도</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">3.2x</div>
+              <div class="stat-label">상담 전환율 향상</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">5시간</div>
+              <div class="stat-label">월 상담 시간 절감</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Differentiators -->
+        <section class="brochure-section">
+          <h2>Smile Vision AI의 차별성</h2>
+          <div class="differentiator-section">
+            <h2 style="margin-top: 0; text-align: left;">기존 상담 vs Smile Vision AI</h2>
+            <div class="differentiator-grid">
+              <div class="diff-item">
+                <div class="label">분석 시간</div>
+                <div class="content">
+                  <p style="margin: 0;">❌ 기존: 10~20분</p>
+                  <p style="margin: 8px 0 0 0;">✅ AI: 3초</p>
+                </div>
+              </div>
+              <div class="diff-item">
+                <div class="label">설득력</div>
+                <div class="content">
+                  <p style="margin: 0;">❌ 기존: 구두 설명 + 사진</p>
+                  <p style="margin: 8px 0 0 0;">✅ AI: 실제 시술 결과 시뮬레이션</p>
+                </div>
+              </div>
+              <div class="diff-item">
+                <div class="label">환자 반응</div>
+                <div class="content">
+                  <p style="margin: 0;">❌ 기존: 고민·미결정</p>
+                  <p style="margin: 8px 0 0 0;">✅ AI: 즉시 결정 및 상담 전환</p>
+                </div>
+              </div>
+              <div class="diff-item">
+                <div class="label">비용 효율</div>
+                <div class="content">
+                  <p style="margin: 0;">❌ 기존: 상담사 의존적</p>
+                  <p style="margin: 8px 0 0 0;">✅ AI: 자동화로 비용 절감</p>
+                </div>
+              </div>
+              <div class="diff-item">
+                <div class="label">데이터 관리</div>
+                <div class="content">
+                  <p style="margin: 0;">❌ 기존: 종이 기록 또는 산재</p>
+                  <p style="margin: 8px 0 0 0;">✅ AI: 통합 DB + 분석</p>
+                </div>
+              </div>
+              <div class="diff-item">
+                <div class="label">신뢰도</div>
+                <div class="content">
+                  <p style="margin: 0;">❌ 기존: 상담사 역량에 따라 변동</p>
+                  <p style="margin: 8px 0 0 0;">✅ AI: 일관된 의료급 정확도</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Role-Based Benefits -->
+        <section class="brochure-section">
+          <h2>직책별 이점</h2>
+          <div class="role-benefits">
+            <!-- 원장 -->
+            <div class="role-card">
+              <div class="role-header">
+                <span class="role-icon">👔</span> 원장님을 위해
+              </div>
+              <div class="role-body">
+                <div class="benefit-item">
+                  <div class="benefit-check">✓</div>
+                  <div class="benefit-text">상담 전환율 3.2배 증가로 연간 2~3억 매출 증대</div>
+                </div>
+                <div class="benefit-item">
+                  <div class="benefit-check">✓</div>
+                  <div class="benefit-text">실시간 KPI 대시보드로 경영 현황 파악 용이</div>
+                </div>
+                <div class="benefit-item">
+                  <div class="benefit-check">✓</div>
+                  <div class="benefit-text">시술 건수 증가에 따른 효율적 인력 배치</div>
+                </div>
+                <div class="benefit-item">
+                  <div class="benefit-check">✓</div>
+                  <div class="benefit-text">환자 만족도 상승 → 입소문 및 재방문율 증대</div>
+                </div>
+                <div class="benefit-item">
+                  <div class="benefit-check">✓</div>
+                  <div class="benefit-text">타 병원과의 차별화로 프리미엄 이미지 구축</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 상담실장 -->
+            <div class="role-card">
+              <div class="role-header">
+                <span class="role-icon">📋</span> 상담실장님을 위해
+              </div>
+              <div class="role-body">
+                <div class="benefit-item">
+                  <div class="benefit-check">✓</div>
+                  <div class="benefit-text">상담 시간 80% 단축 (20분 → 3초 분석)</div>
+                </div>
+                <div class="benefit-item">
+                  <div class="benefit-check">✓</div>
+                  <div class="benefit-text">환자당 상담 시간 감소로 월 5시간 절감</div>
+                </div>
+                <div class="benefit-item">
+                  <div class="benefit-check">✓</div>
+                  <div class="benefit-text">AI 기반 분석으로 설득 자료 자동 생성</div>
+                </div>
+                <div class="benefit-item">
+                  <div class="benefit-check">✓</div>
+                  <div class="benefit-text">이력 관리 시스템으로 환자 재방문 추적</div>
+                </div>
+                <div class="benefit-item">
+                  <div class="benefit-check">✓</div>
+                  <div class="benefit-text">환자 거절율 감소로 상담 스트레스 경감</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Platform Overview -->
+        <section class="brochure-section">
+          <h2>플랫폼 주요 기능</h2>
+          <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+            <div style="background: var(--surface); padding: 28px; border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
+              <div style="font-size: 2rem; margin-bottom: 12px;">📸</div>
+              <h3>AI 치아 시뮬레이터</h3>
+              <p>환자 촬영 → 라미네이트 시술 후 모습 실시간 생성</p>
+            </div>
+            <div style="background: var(--surface); padding: 28px; border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
+              <div style="font-size: 2rem; margin-bottom: 12px;">👥</div>
+              <h3>환자 관리 시스템</h3>
+              <p>개별 환자 정보, 촬영 이력, 상담 기록 통합 관리</p>
+            </div>
+            <div style="background: var(--surface); padding: 28px; border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
+              <div style="font-size: 2rem; margin-bottom: 12px;">📊</div>
+              <h3>KPI 대시보드</h3>
+              <p>상담 전환율, 매출, 환자 흐름을 실시간 차트로 모니터링</p>
+            </div>
+            <div style="background: var(--surface); padding: 28px; border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
+              <div style="font-size: 2rem; margin-bottom: 12px;">💬</div>
+              <h3>AI 상담 챗봇</h3>
+              <p>Gemini 기반 AI가 환자 질문에 24/7 즉시 답변</p>
+            </div>
+            <div style="background: var(--surface); padding: 28px; border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
+              <div style="font-size: 2rem; margin-bottom: 12px;">🎯</div>
+              <h3>치아 점수 엔진</h3>
+              <p>색상, 배열, 대칭, 간격을 분석하여 100점 기준 점수화</p>
+            </div>
+            <div style="background: var(--surface); padding: 28px; border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
+              <div style="font-size: 2rem; margin-bottom: 12px;">🎖️</div>
+              <h3>지휘센터</h3>
+              <p>병원 전체 상황을 한 화면에서 실시간 모니터링</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="cta-banner">
+          <h2>지금 바로 시작하세요</h2>
+          <p>Smile Vision AI로 환자 경험을 혁신하고, 경영 효율을 극대화하세요</p>
+          <div class="cta-button-group">
+            <a href="simulator.html" class="cta-btn primary">AI 시뮬레이터 체험</a>
+            <a href="dashboard.html" class="cta-btn secondary">대시보드 보기</a>
+          </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="brochure-section">
+          <h2>자주 묻는 질문</h2>
+          <div style="display: grid; gap: 20px;">
+            <div style="background: var(--surface); padding: 24px; border-radius: var(--radius-lg); border-left: 4px solid var(--primary);">
+              <h4 style="margin-top: 0; color: var(--primary);">AI 시뮬레이션의 정확도는 얼마나 되나요?</h4>
+              <p style="margin-bottom: 0; color: var(--text-secondary);">92%의 정확도로 실제 시술 결과와 매우 유사합니다. 의료 AI 기술 기반으로 색상, 배열, 대칭을 정밀 분석합니다.</p>
+            </div>
+            <div style="background: var(--surface); padding: 24px; border-radius: var(--radius-lg); border-left: 4px solid var(--primary);">
+              <h4 style="margin-top: 0; color: var(--primary);">도입 시 직원 교육이 필요한가요?</h4>
+              <p style="margin-bottom: 0; color: var(--text-secondary);">아니요. 직관적인 UI로 설계되어 짧은 설명만으로 바로 사용 가능합니다. 매뉴얼 영상 제공.</p>
+            </div>
+            <div style="background: var(--surface); padding: 24px; border-radius: var(--radius-lg); border-left: 4px solid var(--primary);">
+              <h4 style="margin-top: 0; color: var(--primary);">환자 정보 보안은 안전한가요?</h4>
+              <p style="margin-bottom: 0; color: var(--text-secondary);">Supabase 의료 규제 준수 DB 사용. 환자 정보는 암호화되어 안전하게 보관됩니다.</p>
+            </div>
+            <div style="background: var(--surface); padding: 24px; border-radius: var(--radius-lg); border-left: 4px solid var(--primary);">
+              <h4 style="margin-top: 0; color: var(--primary);">초기 도입 비용은 얼마인가요?</h4>
+              <p style="margin-bottom: 0; color: var(--text-secondary);">상담 전환율 증가로 3~6개월 내 투자비 회수 가능한 구조입니다. 자세한 가격은 담당자와 상담하세요.</p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    // Inject sidebar
+    document.getElementById('app').insertAdjacentHTML('afterbegin', renderSidebar('brochure'));
+  </script>
+</body>
+</html>

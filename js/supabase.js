@@ -9,22 +9,37 @@ const SupabaseDB = {
   client: null,
   bucket: 'smile-vision',
 
-  // 기본 설정 (프로젝트 전용)
-  DEFAULT_URL: 'https://udilhdamqlurwjqzlgam.supabase.co',
-  DEFAULT_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkaWxoZGFtcWx1cndqcXpsZ2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNDc4MzAsImV4cCI6MjA5MTkyMzgzMH0.4Vz5OhnvJHC8ZY8u2yQSDlPsPAnc2BnTDsx53HQrM1I',
-
   // --- 초기화 ---
+  // 1순위: localStorage 저장값 (사용자가 Supabase 모달에서 직접 설정한 경우)
+  // 2순위: /api/config로 서버 환경변수에서 공급 (기본 SaaS 동작)
+  // 하드코딩 키 제거됨. 서버 환경변수가 없으면 supabase 모달에서 수동 설정 필요.
   init() {
-    let url = Store.get('supabase_url', '') || this.DEFAULT_URL;
-    let key = Store.get('supabase_key', '') || this.DEFAULT_KEY;
-    if (!url || !key) return false;
-    this.client = supabase.createClient(url, key);
-    // 기본값 사용 시 localStorage에도 저장
-    if (!Store.get('supabase_url', '')) {
-      Store.set('supabase_url', url);
-      Store.set('supabase_key', key);
+    const url = Store.get('supabase_url', '');
+    const key = Store.get('supabase_key', '');
+    if (url && key) {
+      this.client = supabase.createClient(url, key);
+      return true;
     }
-    return true;
+    // 서버 설정 fetch (비동기) — initAsync로 후속 초기화
+    this.initAsync();
+    return false;
+  },
+
+  async initAsync() {
+    try {
+      const r = await fetch('/api/config');
+      if (!r.ok) return false;
+      const c = await r.json();
+      if (c.supabase_url && c.supabase_anon_key) {
+        Store.set('supabase_url', c.supabase_url);
+        Store.set('supabase_key', c.supabase_anon_key);
+        this.client = supabase.createClient(c.supabase_url, c.supabase_anon_key);
+        // 이후 updateSidebarDbState 등 UI 갱신
+        if (typeof updateSidebarDbState === 'function') updateSidebarDbState();
+        return true;
+      }
+    } catch (e) { console.warn('/api/config 로드 실패', e); }
+    return false;
   },
 
   isReady() {
@@ -71,6 +86,60 @@ const SupabaseDB = {
 
   // ============================================================
   // 고객 (Patients)
+  // ============================================================
+  // ============================================================
+  // 회원 (Users) — SaaS 기능
+  // ============================================================
+  async upsertUser({ email, name, clinic, role }) {
+    if (!this.client) throw new Error('Supabase 미연결');
+    const payload = { email, name, clinic, role: role || '상담실장', last_login_at: new Date().toISOString() };
+    const { data, error } = await this.client.from('users')
+      .upsert(payload, { onConflict: 'email' }).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async getUserByEmail(email) {
+    if (!this.client) throw new Error('Supabase 미연결');
+    const { data, error } = await this.client.from('users')
+      .select('*').eq('email', email).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async listUsers() {
+    if (!this.client) throw new Error('Supabase 미연결');
+    const { data, error } = await this.client.from('users')
+      .select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async updateUserTier(userId, tier) {
+    if (!this.client) throw new Error('Supabase 미연결');
+    const { data, error } = await this.client.from('users')
+      .update({ tier }).eq('id', userId).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async getAllMonthlyUsage() {
+    if (!this.client) throw new Error('Supabase 미연결');
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
+    const { data, error } = await this.client.from('api_call_logs')
+      .select('user_id').gte('created_at', monthStart.toISOString());
+    if (error) throw error;
+    const counts = {};
+    (data || []).forEach(row => {
+      if (row.user_id) counts[row.user_id] = (counts[row.user_id] || 0) + 1;
+    });
+    return counts;
+  },
+
+  // ============================================================
+  // 환자 (Patients)
   // ============================================================
   async createPatient({ name, phone, age, gender, memo }) {
     if (!this.client) throw new Error('Supabase 미연결');
